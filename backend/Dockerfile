@@ -10,4 +10,4 @@ RUN poetry config virtualenvs.create false \
 
 COPY . /app/
 
-CMD ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "backend/entrypoint.sh"]
