@@ -13,7 +13,7 @@ class CommentViewSet(
     mixins.CreateModelMixin
 ):
     queryset = Comment.objects.filter(parent_message__isnull=True)
-    serializer_class = ListCommentSerializer
+    ordering_fields = ["created_at", "user__username", "user__email"]
 
     def get_serializer_class(self):
         if self.action == "create":

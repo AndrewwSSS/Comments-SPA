@@ -24,7 +24,8 @@ class ListCommentSerializer(serializers.ModelSerializer):
             "replies",
             "user",
             "text_file",
-            "image"
+            "image",
+            "created_at",
         ]
 
 
