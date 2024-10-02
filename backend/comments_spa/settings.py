@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -114,3 +115,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MAX_FILE_SIZE_KB = 100
 MAX_IMAGE_WIDTH_KB = 320
 MAX_IMAGE_HEIGHT_KB = 240
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
+    ),
+}
