@@ -34,5 +34,11 @@ services:
     depends_on:
       - redis
 
+  celery:
+    build:
+      context: ./backend
+    command:
+      celery -A comments_spa worker -l INFO
+
 volumes:
   db_data:

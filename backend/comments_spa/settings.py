@@ -124,7 +124,6 @@ SIMPLE_JWT = {
     ),
 }
 
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -134,3 +133,6 @@ CACHES = {
         }
     }
 }
+
+CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/0"
+CELERY_TIMEZONE = "UTC"
