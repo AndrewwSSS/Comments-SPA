@@ -7,9 +7,9 @@ from django.utils.text import slugify
 
 
 def unique_file_path(instance, filename):
-    ext = filename.split('.')[-1]
+    ext = filename.split(".")[-1]
 
-    base_filename = slugify(".".join(filename.split('.')[:-1]))
+    base_filename = slugify(".".join(filename.split(".")[:-1]))
     unique_filename = f"{base_filename}_{uuid.uuid4().hex}.{ext}"
 
     directory = "comments/files"
