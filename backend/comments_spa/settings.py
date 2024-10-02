@@ -107,3 +107,10 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+MAX_FILE_SIZE_KB = 100
+MAX_IMAGE_WIDTH_KB = 320
+MAX_IMAGE_HEIGHT_KB = 240

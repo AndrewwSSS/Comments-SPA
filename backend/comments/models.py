@@ -1,6 +1,20 @@
-from django.db import models
+import os
+import uuid
 
+from django.db import models
 from django.conf import settings
+from django.utils.text import slugify
+
+
+def unique_file_path(instance, filename):
+    ext = filename.split('.')[-1]
+
+    base_filename = slugify(".".join(filename.split('.')[:-1]))
+    unique_filename = f"{base_filename}_{uuid.uuid4().hex}.{ext}"
+
+    directory = "comments/files"
+
+    return os.path.join(directory, unique_filename)
 
 
 class Comment(models.Model):
@@ -16,3 +30,6 @@ class Comment(models.Model):
         related_name="replies"
     )
     content = models.TextField()
+    image = models.ImageField(upload_to=unique_file_path, blank=True, null=True)
+    text_file = models.FileField(upload_to=unique_file_path, blank=True, null=True)
+    
