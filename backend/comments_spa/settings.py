@@ -121,3 +121,14 @@ SIMPLE_JWT = {
         minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
     ),
 }
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
