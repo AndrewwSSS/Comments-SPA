@@ -40,5 +40,14 @@ services:
     command:
       celery -A comments_spa worker -l INFO
 
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
 volumes:
   db_data:
