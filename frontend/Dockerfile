@@ -8,4 +8,4 @@ RUN npm install
 
 COPY . .
 
-ENTRYPOINT ["npm", "run", "serve"]
+ENTRYPOINT ["npm", "run", "serve", "--", "--host", "0.0.0.0", "--port", "8080"]
