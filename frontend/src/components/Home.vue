@@ -7,7 +7,7 @@
 
 <script>
 export default {
-  name: 'UserHome',  // Make sure the name is multi-word compliant if you're using ESLint rules
+  name: 'UserHome',
 };
 </script>
 
