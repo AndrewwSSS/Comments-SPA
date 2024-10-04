@@ -15,6 +15,7 @@ class ListCommentSerializer(serializers.ModelSerializer):
         child=RecursiveField(),
         required=False,
     )
+    user = serializers.StringRelatedField(read_only=True, source="user.username")
 
     class Meta:
         model = Comment
