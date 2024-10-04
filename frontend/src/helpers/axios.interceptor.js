@@ -1,17 +1,18 @@
 import axios from 'axios';
-import store from '../store';  // Assuming the Vuex store is exported from 'store/index.js'
+import store from '../store';
 
 axios.interceptors.request.use(
   config => {
-    const token = JSON.parse(localStorage.getItem('user')).access;
-    if (token) {
-      config.headers['Authorization'] = 'Bearer ' + token;
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (user && user.access) {
+      config.headers['Authorization'] = 'Bearer ' + user.access;
     }
     return config;
   },
   error => {
     return Promise.reject(error);
-  },
+  }
 );
 
 axios.interceptors.response.use(
@@ -19,32 +20,37 @@ axios.interceptors.response.use(
     return response;
   },
   async error => {
-    // await store.dispatch('auth/logout');
-    // window.location.href = '/login';
-    if (error.response.status !== 401) {
-        return Promise.reject(error);
+    if (!error.response || error.response.status !== 401) {
+      return Promise.reject(error);
     }
-    let user = JSON.parse(localStorage.getItem('user'))
+
+    let user = JSON.parse(localStorage.getItem('user'));
+
     if (!user) {
-        await store.dispatch('auth/logout');
-        window.location.href = '/login';
+      await store.dispatch('auth/logout');
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
+
     let refresh_token = user.refresh;
-    const response = await axios.post(
+    try {
+      const response = await axios.post(
         `http://127.0.0.1:8000/api/users/token/refresh/`,
-        {
-            refresh: refresh_token,
-        }
-    )
-    if (response.status === 200) {
+        { refresh: refresh_token }
+      );
+
+      if (response.status === 200) {
         user.access = response.data.access;
         localStorage.setItem('user', JSON.stringify(user));
+
+        error.config.headers['Authorization'] = 'Bearer ' + response.data.access;
         return axios(error.config);
+      }
+    } catch (refreshError) {
+      await store.dispatch('auth/logout');
+      window.location.href = '/login';
     }
-    else {
-        await store.dispatch('auth/logout');
-        window.location.href = '/login';
-    }
+
     return Promise.reject(error);
-  },
+  }
 );
