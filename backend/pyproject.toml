@@ -16,6 +16,7 @@ djangorestframework-recursive = "^0.1.2"
 pillow = "^10.4.0"
 django-redis = "^5.4.0"
 celery = "^5.4.0"
+django-cors-headers = "^4.4.0"
 
 
 [build-system]
