@@ -1,5 +1,5 @@
 <template>
-  <div v-if="comments.length === 0" class="no-comments">
+  <div v-if="!comments" class="no-comments">
     <p>No comments yet. Be the first to comment!</p>
   </div>
   <div v-else class="comment-list">
@@ -10,13 +10,14 @@
       @commentAdded="fetchComments"
     />
   </div>
-  <CommentForm @commentAdded="fetchComments" :parentMessageId="null" />
+  <CommentForm @commentAdded="fetchComments" :parentMessageId="null" socket="socket" />
 </template>
 
 <script>
-import axios from 'axios';
+//import axios from 'axios';
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
+import { subscribe_to_message_list } from "../api";
 
 export default {
   components: { CommentItem, CommentForm },
@@ -26,26 +27,18 @@ export default {
     };
   },
   methods: {
-    fetchComments() {
-      axios
-        .get('http://127.0.0.1:8000/api/comments/')
-        .then((response) => {
-          console.log(response);
-          this.comments = response.data.results;
-        })
-        .catch((error) => {
-          console.error('Error fetching comments:', error);
-        });
+    fetchComments(comments) {
+      this.comments = comments;
     },
   },
   mounted() {
-    this.fetchComments();
+    subscribe_to_message_list(this.fetchComments)
   },
 };
 </script>
 
 <style scoped>
-/* Container for the entire comments section */
+
 .comments-section {
   max-width: 800px;
   margin: 20px auto;

@@ -17,6 +17,9 @@ pillow = "^10.4.0"
 django-redis = "^5.4.0"
 celery = "^5.4.0"
 django-cors-headers = "^4.4.0"
+djangochannelsrestframework = "^1.2.0"
+channels-redis = "^4.2.0"
+daphne = "^4.1.2"
 
 
 [build-system]

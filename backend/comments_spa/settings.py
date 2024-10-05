@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "corsheaders",
     "rest_framework",
     "user",
@@ -36,6 +37,21 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [
+                f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/2"
+            ],
+        },
+    },
+}
+
+WSGI_APPLICATION = 'comments_spa.wsgi.application'
+ASGI_APPLICATION = 'comments_spa.asgi.application'
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080"
@@ -59,8 +75,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "comments_spa.wsgi.application"
 
 
 DATABASES = {

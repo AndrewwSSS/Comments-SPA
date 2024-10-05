@@ -5,12 +5,12 @@
 
       <label class="file-label">
         <span>Attach Image:</span>
-        <input type="file" @change="onFileChange('image')" accept="image/*" class="file-input" />
+        <input type="file" @change="onFileChange('image', $event)" accept="image/*" class="file-input" />
       </label>
 
       <label class="file-label">
         <span>Attach Text File:</span>
-        <input type="file" @change="onFileChange('text_file')" accept=".txt" class="file-input" />
+        <input type="file" @change="onFileChange('text_file', $event)" accept=".txt" class="file-input" />
       </label>
 
       <!-- Remove the @click event -->
@@ -22,7 +22,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+// import axios from 'axios';
+import { send_message} from "@/api";
 
 export default {
   props: {
@@ -40,38 +41,38 @@ export default {
     };
   },
   methods: {
-    onFileChange(field) {
+    onFileChange(field, event) {
       const fileInput = event.target;
+      console.log(field);
       if (fileInput.files.length > 0) {
         this[field] = fileInput.files[0];
+      } else {
+        this[field] = null; // Handle the case where no file is selected
       }
     },
-    submitComment() {
-      console.log("submit");
-      const formData = new FormData();
-      formData.append('content', this.content);
-      if (this.image) {
-        formData.append('image', this.image);
-      }
-      if (this.text_file) {
-        formData.append('text_file', this.text_file);
-      }
-      if (this.parentMessageId) {
-        formData.append('parent_message', this.parentMessageId);
-      }
-      console.log(formData);
 
-      axios.post('http://127.0.0.1:8000/api/comments/', formData)
-        .then(() => {
-          this.$emit('commentAdded');
-          this.content = '';
-          this.image = null;
-          this.text_file = null;
-        })
-        .catch((error) => {
-          this.error = 'Error submitting the comment.';
-          console.error('Error:', error);
-        });
+    submitComment() {
+      const messageData = {
+        content: this.content,
+      };
+
+      if (this.image) {
+        messageData.image = this.image;
+      }
+
+      if (this.text_file) {
+        messageData.text_file = this.text_file;
+      }
+
+      if (this.parentMessageId) {
+        messageData.parent_message = this.parentMessageId;
+      }
+
+      send_message(messageData);
+      this.$emit('commentAdded');
+      this.content = '';
+      this.image = null;
+      this.text_file = null;
     },
   },
 };
