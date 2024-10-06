@@ -26,8 +26,34 @@ export default {
     };
   },
   methods: {
-    add_comment(comment) {
-      console.log("New comment", comment);
+    add_comment(newComment) {
+      if (newComment.parent_message === null || newComment.parent_message === undefined) {
+        this.comments.push(newComment);
+        return
+      }
+      const parentComment = this.findCommentById(this.comments, newComment.parent_message);
+      if (parentComment) {
+        if (!parentComment.replies) {
+          this.$set(parentComment, 'replies', []);
+        }
+        parentComment.replies.push(newComment);
+      } else {
+        console.warn(`Parent comment with id ${newComment.parent_message} not found`);
+        //this.comments.push(newComment);
+      }
+    },
+    findCommentById(commentsArray, id) {
+      for (let comment of commentsArray) {
+        if (comment.id === id) {
+          return comment;
+        } else if (comment.replies && comment.replies.length > 0) {
+          const result = this.findCommentById(comment.replies, id);
+          if (result) {
+            return result;
+          }
+        }
+      }
+      return null;
     },
     update_comments(comments) {
       this.comments = comments;
@@ -69,6 +95,8 @@ h3 {
 /* Styling for the list of comments */
 .comment-list {
   margin-top: 20px;
+  width: 70%;
+  justify-content: center;
 }
 
 /* Responsive Design */
