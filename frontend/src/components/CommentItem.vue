@@ -8,8 +8,6 @@
         <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
         <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         <div class="comment-actions">
-          <!-- Placeholder icons for like and reply -->
-          <span @click="likeComment" class="icon">&#128077;</span> <!-- Like -->
           <span @click="toggleReplyForm" class="icon">&#128172;</span> <!-- Reply -->
         </div>
       </div>
