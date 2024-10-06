@@ -6,4 +6,5 @@ from django.urls import path, include
 urlpatterns = [
     path("api/users/", include("user.urls")),
     path("api/", include("comments.urls")),
+    path("api/captcha", include("captcha.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
