@@ -5,8 +5,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
 from asgiref.sync import sync_to_async
 
-from .models import Comment
-from .serializers import CommentSerializer
+from comments.models import Comment
+from comments.serializers import CommentSerializer
 
 
 class CommentConsumer(

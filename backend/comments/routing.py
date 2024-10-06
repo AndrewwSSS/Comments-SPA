@@ -1,5 +1,5 @@
 from django.urls import path
-from .consumers import CommentConsumer
+from comments.consumers import CommentConsumer
 
 
 app_name = "comments"

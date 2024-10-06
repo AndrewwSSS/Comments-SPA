@@ -2,7 +2,7 @@ import os
 import django
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
-from .jwt_middleware import JWTAuthMiddleware
+from comments_spa.jwt_middleware import JWTAuthMiddleware
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'comments_spa.settings')

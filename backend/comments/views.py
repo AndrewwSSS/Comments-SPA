@@ -5,8 +5,8 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from channels.layers import get_channel_layer
 
-from .models import Comment
-from .serializers import CommentSerializer
+from comments.models import Comment
+from comments.serializers import CommentSerializer
 
 
 class CommentViewSet(

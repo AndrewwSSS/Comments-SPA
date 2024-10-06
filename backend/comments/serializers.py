@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework_recursive.fields import RecursiveField
 from PIL import Image
 
-from .models import Comment
+from comments.models import Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
