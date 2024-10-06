@@ -7,17 +7,16 @@
       v-for="comment in comments"
       :key="comment.id"
       :comment="comment"
-      @commentAdded="fetchComments"
     />
   </div>
-  <CommentForm @commentAdded="fetchComments" :parentMessageId="null" socket="socket" />
+  <CommentForm :parentMessageId="null" socket="socket" />
 </template>
 
 <script>
 //import axios from 'axios';
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
-import { subscribe_to_message_list } from "../api";
+import { get_comments, subscribe_to_new_messages } from "../api";
 
 export default {
   components: { CommentItem, CommentForm },
@@ -27,12 +26,16 @@ export default {
     };
   },
   methods: {
-    fetchComments(comments) {
-      this.comments = comments;
+    add_comment(comment) {
+      console.log("New comment", comment);
     },
+    update_comments(comments) {
+      this.comments = comments;
+    }
   },
   mounted() {
-    subscribe_to_message_list(this.fetchComments)
+    get_comments(this.update_comments);
+    subscribe_to_new_messages(this.add_comment)
   },
 };
 </script>

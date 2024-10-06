@@ -23,7 +23,7 @@
 
 <script>
 // import axios from 'axios';
-import { send_message} from "@/api";
+import { send_message } from "@/api";
 
 export default {
   props: {
