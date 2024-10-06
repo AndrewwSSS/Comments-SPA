@@ -13,7 +13,6 @@
 </template>
 
 <script>
-//import axios from 'axios';
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
 import { get_comments, subscribe_to_new_messages, connectWebSocket } from "../api";
@@ -39,7 +38,6 @@ export default {
         parentComment.replies.push(newComment);
       } else {
         console.warn(`Parent comment with id ${newComment.parent_message} not found`);
-        //this.comments.push(newComment);
       }
     },
     findCommentById(commentsArray, id) {
@@ -78,7 +76,6 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Title for the comments section */
 h3 {
   font-size: 1.5rem;
   color: #333;
@@ -86,21 +83,18 @@ h3 {
   margin-bottom: 20px;
 }
 
-/* Styling for the no-comments message */
 .no-comments {
   text-align: center;
   padding: 20px;
   color: #555;
 }
 
-/* Styling for the list of comments */
 .comment-list {
   margin-top: 20px;
   width: 70%;
   justify-content: center;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .comments-section {
     padding: 15px;
