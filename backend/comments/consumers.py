@@ -16,7 +16,6 @@ class CommentConsumer(
         self.room_name = "chat_room"
         await self.channel_layer.group_add(self.room_name, self.channel_name)
         await self.accept()
-        await self.send_comments_list()
 
     async def disconnect(self, close_code):
         await self.send(text_data=json.dumps({
@@ -80,9 +79,6 @@ class CommentConsumer(
         )
         print(user)
         return user
-
-    async def broadcast_comments(self, event):
-        await self.send_comments_list()
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
