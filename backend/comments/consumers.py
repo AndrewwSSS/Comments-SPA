@@ -6,7 +6,7 @@ from django.core.cache import cache
 from asgiref.sync import sync_to_async
 
 from .models import Comment
-from .serializers import ListCommentSerializer
+from .serializers import CommentSerializer
 
 
 class CommentConsumer(
@@ -35,7 +35,7 @@ class CommentConsumer(
 
     @database_sync_to_async
     def get_comments_from_db(self):
-        return ListCommentSerializer(
+        return CommentSerializer(
             Comment.objects.filter(parent_message=None),
             many=True,
         ).data
