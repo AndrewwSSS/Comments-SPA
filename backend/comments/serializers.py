@@ -10,11 +10,13 @@ from PIL import Image
 from .models import Comment
 
 
-class ListCommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.ListSerializer(
         child=RecursiveField(),
         required=False,
     )
+    image = serializers.ImageField(required=False)
+    text_file = serializers.FileField(required=False)
     user = serializers.StringRelatedField(read_only=True, source="user.username")
 
     class Meta:
@@ -27,20 +29,11 @@ class ListCommentSerializer(serializers.ModelSerializer):
             "text_file",
             "image",
             "created_at",
+            "parent_message"
         ]
-
-
-class CreateCommentSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
-    text_file = serializers.FileField(required=False)
-
-    class Meta:
-        model = Comment
-        fields = [
-            "content",
-            "parent_message",
-            "image",
-            "text_file",
+        read_only_fields = [
+            "created_at",
+            "id"
         ]
 
     @staticmethod

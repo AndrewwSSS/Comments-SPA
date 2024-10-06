@@ -6,8 +6,7 @@ from rest_framework.response import Response
 from channels.layers import get_channel_layer
 
 from .models import Comment
-from .serializers import ListCommentSerializer
-from .serializers import CreateCommentSerializer
+from .serializers import CommentSerializer
 
 
 class CommentViewSet(
@@ -17,11 +16,7 @@ class CommentViewSet(
 ):
     queryset = Comment.objects.filter(parent_message__isnull=True)
     ordering_fields = ["created_at", "user__username", "user__email"]
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return CreateCommentSerializer
-        return ListCommentSerializer
+    serializer_class = CommentSerializer
 
     @method_decorator(cache_page(60 * 5, key_prefix="comments_list"))
     def list(self, request, *args, **kwargs):
