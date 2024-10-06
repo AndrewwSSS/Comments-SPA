@@ -14,7 +14,11 @@ class CommentViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin
 ):
-    queryset = Comment.objects.filter(parent_message__isnull=True)
+    queryset = Comment.objects.filter(
+        parent_message__isnull=True
+    ).prefetch_related(
+        "replies"
+    ).select_related("user")
     ordering_fields = ["created_at", "user__username", "user__email"]
     serializer_class = CommentSerializer
 
