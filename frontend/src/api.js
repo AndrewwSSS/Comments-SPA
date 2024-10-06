@@ -75,7 +75,7 @@ export function subscribe_to_new_messages(cb) {
 }
 
 export async function send_message(msg) {
-  await axios.post(`${process.env.VUE_APP_API_URL}comments/`, msg);
+  return axios.post(`${process.env.VUE_APP_API_URL}comments/`, msg);
 }
 
 export function get_comments(cb) {

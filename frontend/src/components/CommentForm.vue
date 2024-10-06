@@ -1,6 +1,6 @@
 <template>
   <div class="comment-form">
-    <form @submit.prevent="submitComment"> <!-- This handles form submission -->
+    <form @submit.prevent="submitComment">
       <textarea v-model="content" placeholder="Enter your comment" required class="comment-textarea"></textarea>
 
       <label class="file-label">
@@ -13,16 +13,13 @@
         <input type="file" @change="onFileChange('text_file', $event)" accept=".txt" class="file-input" />
       </label>
 
-      <!-- Remove the @click event -->
       <button type="submit" class="submit-button">Reply</button>
-
       <div v-if="error" class="error">{{ error }}</div>
     </form>
   </div>
 </template>
 
 <script>
-// import axios from 'axios';
 import { send_message } from "@/api";
 
 export default {
@@ -47,39 +44,43 @@ export default {
       if (fileInput.files.length > 0) {
         this[field] = fileInput.files[0];
       } else {
-        this[field] = null; // Handle the case where no file is selected
+        this[field] = null;
       }
     },
 
     submitComment() {
-      const messageData = {
-        content: this.content,
-      };
+      const formData = new FormData();
+      formData.append('content', this.content);
 
       if (this.image) {
-        messageData.image = this.image;
+        formData.append('image', this.image);
       }
 
       if (this.text_file) {
-        messageData.text_file = this.text_file;
+        formData.append('text_file', this.text_file);
       }
 
       if (this.parentMessageId) {
-        messageData.parent_message = this.parentMessageId;
+        formData.append('parent_message', this.parentMessageId);
       }
 
-      send_message(messageData);
-      this.$emit('commentAdded');
-      this.content = '';
-      this.image = null;
-      this.text_file = null;
-    },
+      send_message(formData)
+          .then(() => {
+            this.$emit('commentAdded');
+            this.content = '';
+            this.image = null;
+            this.text_file = null;
+          })
+          .catch((error) => {
+            console.error('Error sending message:', error);
+            this.error = 'Failed to submit comment. Please try again.';
+          });
+    }
   },
 };
 </script>
 
 <style scoped>
-/* General Styling */
 .comment-form {
   background-color: #f9f9f9;
   padding: 20px;
@@ -101,7 +102,6 @@ export default {
   box-sizing: border-box;
 }
 
-/* File Input Styling */
 .file-label {
   display: block;
   margin-bottom: 1rem;
@@ -116,7 +116,6 @@ export default {
   font-size: 0.9rem;
 }
 
-/* Submit Button */
 .submit-button {
   padding: 10px 15px;
   background-color: #007bff;
@@ -132,7 +131,6 @@ export default {
   background-color: #0056b3;
 }
 
-/* Error Styling */
 .error {
   color: red;
   margin-top: 10px;
