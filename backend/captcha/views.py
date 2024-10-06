@@ -8,9 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-
-CAPTCHA_TTL = 300
-CAPTCHA_LENGTH = 5
+from comments_spa.settings import CAPTCHA_TTL, CAPTCHA_LENGTH
 
 
 def generate_random_string_with_digits(length: int) -> str:

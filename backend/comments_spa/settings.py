@@ -158,3 +158,7 @@ CACHES = {
 
 CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/0"
 CELERY_TIMEZONE = "UTC"
+
+
+CAPTCHA_TTL = 300
+CAPTCHA_LENGTH = 5
