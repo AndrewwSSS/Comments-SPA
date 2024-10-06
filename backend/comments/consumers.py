@@ -83,3 +83,9 @@ class CommentConsumer(
 
     async def broadcast_comments(self, event):
         await self.send_comments_list()
+
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            "action": "chat_message",
+            "comment": event["comment"],
+        }))
