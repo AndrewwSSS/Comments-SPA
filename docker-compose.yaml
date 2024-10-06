@@ -22,6 +22,19 @@ services:
     env_file:
       - backend/.env
 
+  backend-ws:
+    build:
+      context: ./backend
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+    env_file:
+      - backend/.env
+    command: sh backend/ws-entrypoint.sh
+
   redis:
     image: redis:alpine
     ports:

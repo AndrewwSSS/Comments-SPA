@@ -20,7 +20,7 @@
     <router-view></router-view>
 
     <footer>
-      <p>&copy; 2024 MyApp. All rights reserved.</p>
+      <p>&copy; 2024 MyApp. All right333s reserved.</p>
     </footer>
   </div>
 </template>
@@ -48,17 +48,14 @@ export default {
 };
 </script>
 
+<style src="@/assets/global.css"></style>
+
 <style scoped>
-/* Global Styles */
-body {
-  margin: 0;
-  padding: 0;
-}
 
 #app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   font-family: 'Roboto', sans-serif;
   background-color: #f4f6f9;
 }
@@ -71,22 +68,19 @@ header {
 nav {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* Vertically centers the nav items */
+  align-items: center;
   gap: 1rem;
 }
 
-/* Left group for Home and Profile links */
 .nav-group-left {
   display: flex;
   justify-content: flex-start;
-  align-items: center; /* Ensure vertical alignment */
-}
+  align-items: center;
 
-/* Right group for Register, Logout */
 .nav-group-right {
   display: flex;
   justify-content: flex-end;
-  align-items: center; /* Vertically centers Register and Logout */
+  align-items: center;
   gap: 1rem;
 }
 
@@ -118,9 +112,8 @@ nav {
   background-color: #c82333;
 }
 
-/* Main Content */
 main {
-  flex: 1; /* This allows the main content to grow and push the footer down */
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -128,7 +121,6 @@ main {
   width: 100%;
 }
 
-/* Footer */
 footer {
   background-color: #007bff;
   color: #fff;
@@ -139,7 +131,7 @@ footer {
   position: relative;
   bottom: 0;
   left: 0;
-  margin-top: auto; /* Pushes the footer underneath the main content */
+  margin-top: auto;
 }
 
 /* Mobile Responsive */
@@ -152,6 +144,6 @@ footer {
   .nav-link, .logout-button {
     font-size: 0.9rem;
   }
-}
+}}
 
 </style>

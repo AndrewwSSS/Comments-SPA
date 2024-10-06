@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api/';
+const API_URL = process.env. VUE_APP_API_URL;
 
 class AuthService {
   login(user) {
@@ -39,9 +39,10 @@ class AuthService {
       })
       .then(response => {
         if (response.data.access) {
+          user.update(response.data);
           localStorage.setItem('user', JSON.stringify(response.data));
         }
-        return response.data;
+        return user;
       });
     }
 }

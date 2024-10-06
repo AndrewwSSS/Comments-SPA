@@ -1,5 +1,5 @@
 <template>
-  <div v-if="comments.length === 0" class="no-comments">
+  <div v-if="!comments" class="no-comments">
     <p>No comments yet. Be the first to comment!</p>
   </div>
   <div v-else class="comment-list">
@@ -7,16 +7,16 @@
       v-for="comment in comments"
       :key="comment.id"
       :comment="comment"
-      @commentAdded="fetchComments"
     />
   </div>
-  <CommentForm @commentAdded="fetchComments" :parentMessageId="null" />
+  <CommentForm :parentMessageId="null" socket="socket" />
 </template>
 
 <script>
-import axios from 'axios';
+//import axios from 'axios';
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
+import { get_comments, subscribe_to_new_messages, connectWebSocket } from "../api";
 
 export default {
   components: { CommentItem, CommentForm },
@@ -26,26 +26,49 @@ export default {
     };
   },
   methods: {
-    fetchComments() {
-      axios
-        .get('http://127.0.0.1:8000/api/comments/')
-        .then((response) => {
-          console.log(response);
-          this.comments = response.data.results;
-        })
-        .catch((error) => {
-          console.error('Error fetching comments:', error);
-        });
+    add_comment(newComment) {
+      if (newComment.parent_message === null || newComment.parent_message === undefined) {
+        this.comments.push(newComment);
+        return
+      }
+      const parentComment = this.findCommentById(this.comments, newComment.parent_message);
+      if (parentComment) {
+        if (!parentComment.replies) {
+          this.$set(parentComment, 'replies', []);
+        }
+        parentComment.replies.push(newComment);
+      } else {
+        console.warn(`Parent comment with id ${newComment.parent_message} not found`);
+        //this.comments.push(newComment);
+      }
     },
+    findCommentById(commentsArray, id) {
+      for (let comment of commentsArray) {
+        if (comment.id === id) {
+          return comment;
+        } else if (comment.replies && comment.replies.length > 0) {
+          const result = this.findCommentById(comment.replies, id);
+          if (result) {
+            return result;
+          }
+        }
+      }
+      return null;
+    },
+    update_comments(comments) {
+      this.comments = comments;
+    }
   },
   mounted() {
-    this.fetchComments();
+    connectWebSocket()
+    get_comments(this.update_comments);
+    subscribe_to_new_messages(this.add_comment)
   },
 };
 </script>
 
 <style scoped>
-/* Container for the entire comments section */
+
 .comments-section {
   max-width: 800px;
   margin: 20px auto;
@@ -73,6 +96,8 @@ h3 {
 /* Styling for the list of comments */
 .comment-list {
   margin-top: 20px;
+  width: 70%;
+  justify-content: center;
 }
 
 /* Responsive Design */

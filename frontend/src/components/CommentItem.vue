@@ -8,8 +8,6 @@
         <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
         <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         <div class="comment-actions">
-          <!-- Placeholder icons for like and reply -->
-          <span @click="likeComment" class="icon">&#128077;</span> <!-- Like -->
           <span @click="toggleReplyForm" class="icon">&#128172;</span> <!-- Reply -->
         </div>
       </div>
@@ -18,7 +16,7 @@
       <img v-if="comment.image" :src="comment.image" alt="comment image" class="comment-image" />
       <a v-if="comment.text_file" :href="comment.text_file" class="comment-file-link" download>Download file</a>
 
-      <div v-if="comment.replies.length" class="comment-replies">
+      <div v-if="comment.replies" class="comment-replies">
         <CommentItem
           v-for="reply in comment.replies"
           :key="reply.id"
@@ -53,9 +51,6 @@ export default {
   methods: {
     toggleReplyForm() {
       this.showReplyForm = !this.showReplyForm;
-    },
-    likeComment() {
-      // Handle like action here
     },
     formatDate(date) {
       return new Date(date).toLocaleString();
