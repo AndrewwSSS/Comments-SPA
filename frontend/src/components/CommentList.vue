@@ -16,7 +16,7 @@
 //import axios from 'axios';
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
-import { get_comments, subscribe_to_new_messages } from "../api";
+import { get_comments, subscribe_to_new_messages, connectWebSocket } from "../api";
 
 export default {
   components: { CommentItem, CommentForm },
@@ -60,6 +60,7 @@ export default {
     }
   },
   mounted() {
+    connectWebSocket()
     get_comments(this.update_comments);
     subscribe_to_new_messages(this.add_comment)
   },

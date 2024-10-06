@@ -85,5 +85,3 @@ export function get_comments(cb) {
       cb(response.data.results);
   })
 }
-
-connectWebSocket()
