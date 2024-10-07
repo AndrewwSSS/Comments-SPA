@@ -97,6 +97,9 @@ export default {
         this.comments.unshift(newComment);
       } else {
         const parentComment = this.findCommentById(this.comments, newComment.parent_message);
+        if (!parentComment.replies) {
+          parentComment.replies = []
+        }
         if (parentComment) {
           parentComment.replies = [...parentComment.replies, newComment];
         }

@@ -52,6 +52,9 @@
 import { send_message } from "@/api";
 
 export default {
+  props: {
+    parentMessageId: Number
+  },
   data() {
     return {
       content: '',
@@ -156,6 +159,10 @@ export default {
 
       if (this.text_file) {
         formData.append('text_file', this.text_file);
+      }
+
+      if (this.parentMessageId) {
+        formData.append('parent_message', this.parentMessageId);
       }
 
       send_message(formData)
