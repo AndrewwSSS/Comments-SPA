@@ -17,10 +17,13 @@
       </nav>
     </header>
 
-    <router-view></router-view>
+    <!-- Wrap router-view in main -->
+    <main>
+      <router-view></router-view>
+    </main>
 
     <footer>
-      <p>&copy; 2024 MyApp. All right333s reserved.</p>
+      <p>&copy; 2024 MyApp. All rights reserved.</p>
     </footer>
   </div>
 </template>
@@ -55,9 +58,7 @@ export default {
 #app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   font-family: 'Roboto', sans-serif;
-  background-color: #f4f6f9;
 }
 
 header {
