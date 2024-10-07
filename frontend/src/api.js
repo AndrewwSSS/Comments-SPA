@@ -78,12 +78,17 @@ export async function send_message(msg) {
   return axios.post(`${process.env.VUE_APP_API_URL}comments/`, msg);
 }
 
-export function get_comments(cb) {
-   axios.get(
-      `${process.env.VUE_APP_API_URL}comments/`
-  ).then(response => {
-      cb(response.data.results);
-  })
+export function get_comments(page = 1, cb) {
+  axios
+      .get(`${process.env.VUE_APP_API_URL}comments/`, {
+        params: { page },
+      })
+      .then((response) => {
+        cb(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch comments:", error);
+      });
 }
 
 export function get_replies(commentId, page = 1) {
