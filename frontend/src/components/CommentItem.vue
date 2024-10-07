@@ -1,32 +1,72 @@
 <template>
-  <div class="comment-item">
-<!--    <div class="comment-avatar">-->
-<!--      <img :src="comment.user.avatar || defaultAvatar" alt="avatar" />-->
-<!--    </div>-->
+  <div :class="['comment-item', isReply ? 'reply-item' : '']">
     <div class="comment-body">
       <div class="comment-header">
-        <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
-        <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+        <div>
+          <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
+          <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+        </div>
         <div class="comment-actions">
-          <span @click="toggleReplyForm" class="icon">&#128172;</span> <!-- Reply -->
+          <span
+              @click="toggleReplyForm"
+              class="icon"
+              title="Reply"
+          >
+            <i class="fas fa-reply"></i>
+          </span>
         </div>
       </div>
-      <p class="comment-text">{{ comment.content }}</p>
+      <p class="comment-text" v-html="formattedContent"></p>
 
-      <img v-if="comment.image" :src="comment.image" alt="comment image" class="comment-image" />
-      <a v-if="comment.text_file" :href="comment.text_file" class="comment-file-link" download>Download file</a>
+      <img
+          v-if="comment.image"
+          :src="comment.image"
+          alt="comment image"
+          class="comment-image"
+      />
+      <a
+          v-if="comment.text_file"
+          :href="comment.text_file"
+          class="comment-file-link"
+          download
+      >
+        <i class="fas fa-file-download"></i> Download file
+      </a>
 
-      <div v-if="comment.replies" class="comment-replies">
+      <!-- Load Replies Button -->
+      <button
+          v-if="comment.has_replies && !repliesLoaded"
+          @click="loadReplies"
+          class="load-replies-button"
+      >
+        <i class="fas fa-comments"></i> View Replies ({{ comment.replies_count }})
+      </button>
+
+      <!-- Display Replies -->
+      <div v-if="replies && replies.length" class="comment-replies">
         <CommentItem
-          v-for="reply in comment.replies"
-          :key="reply.id"
-          :comment="reply"
-           @commentAdded="fetchReplies"
+            v-for="reply in replies"
+            :key="reply.id"
+            :comment="reply"
+            :isReply="true"
+            @commentAdded="fetchReplies"
         />
+        <!-- Load More Replies Button -->
+        <button
+            v-if="nextPage"
+            @click="loadReplies"
+            class="load-more-button"
+        >
+          <i class="fas fa-chevron-down"></i> Load More Replies
+        </button>
       </div>
 
+      <!-- Reply Form -->
       <div v-if="showReplyForm" class="reply-form">
-        <comment-form @commentAdded="fetchReplies" :parentMessageId="comment.id"/>
+        <comment-form
+            @commentAdded="fetchReplies"
+            :parentMessageId="comment.id"
+        />
       </div>
     </div>
   </div>
@@ -35,18 +75,31 @@
 <script>
 import CommentItem from './CommentItem.vue';
 import CommentForm from "@/components/CommentForm.vue";
+import { get_replies } from "@/api";
 
 export default {
-  components: {CommentForm, CommentItem },
+  components: { CommentForm, CommentItem },
   props: {
     comment: Object,
+    isReply: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       showReplyForm: false,
-      replyContent: '',
+      replies: [],
+      repliesLoaded: false,
+      nextPage: null,
       defaultAvatar: '/default-avatar.png', // Default avatar path
     };
+  },
+  computed: {
+    formattedContent() {
+      // Simple formatting, e.g., line breaks
+      return this.comment.content.replace(/\n/g, '<br>');
+    },
   },
   methods: {
     toggleReplyForm() {
@@ -55,8 +108,29 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleString();
     },
+    loadReplies() {
+      const page = this.nextPage ? this.nextPage : 1;
+      get_replies(this.comment.id, page)
+          .then(response => {
+            if (response.status === 200) {
+              const data = response.data;
+              if (page === 1) {
+                this.replies = data.results;
+              } else {
+                this.replies = this.replies.concat(data.results);
+              }
+              this.nextPage = data.next ? page + 1 : null;
+              this.repliesLoaded = true;
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching replies:', error);
+          });
+    },
     fetchReplies() {
-      this.$emit('commentAdded');
+      // Refresh replies when a new reply is added
+      this.nextPage = null;
+      this.loadReplies();
       this.showReplyForm = false;
     },
   },
@@ -64,22 +138,28 @@ export default {
 </script>
 
 <style scoped>
+/* Import FontAwesome for icons */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
 .comment-item {
   display: flex;
   padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-bottom: 1px solid #ebeef5;
   background-color: #fff;
-  margin-bottom: 1rem;
+}
+
+.reply-item {
+  margin-left: 50px;
+  border-left: 2px solid #ebeef5;
 }
 
 .comment-avatar {
-  margin-right: 10px;
+  margin-right: 15px;
 }
 
 .comment-avatar img {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -95,13 +175,14 @@ export default {
 }
 
 .comment-username {
-  font-weight: bold;
+  font-weight: 500;
   color: #333;
+  margin-right: 10px;
 }
 
 .comment-date {
-  color: #999;
-  font-size: 0.9rem;
+  color: #909399;
+  font-size: 0.85rem;
 }
 
 .comment-actions {
@@ -111,60 +192,64 @@ export default {
 
 .icon {
   cursor: pointer;
-  font-size: 1.2rem;
-  color: #007bff;
+  font-size: 1rem;
+  color: #909399;
+  transition: color 0.3s;
+}
+
+.icon:hover {
+  color: #409eff;
 }
 
 .comment-text {
   margin: 10px 0;
-  color: #333;
+  color: #606266;
+  line-height: 1.6;
 }
 
 .comment-image {
   max-width: 100%;
   margin-top: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 .comment-file-link {
   display: inline-block;
   margin-top: 10px;
-  color: #007bff;
+  color: #409eff;
   text-decoration: none;
+  font-size: 0.95rem;
 }
 
 .comment-file-link:hover {
   text-decoration: underline;
 }
 
-/* Replies */
+.load-replies-button,
+.load-more-button {
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: #ecf5ff;
+  color: #409eff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.load-replies-button:hover,
+.load-more-button:hover {
+  background-color: #d9ecff;
+}
+
 .comment-replies {
   margin-top: 1rem;
-  padding-left: 20px;
-  border-left: 2px solid #f0f0f0;
 }
 
-/* Reply Form */
 .reply-form {
-  margin-top: 10px;
-}
-
-.reply-form textarea {
-  width: 100%;
-  height: 60px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  resize: vertical;
-}
-
-.reply-form button {
-  margin-top: 5px;
-  padding: 6px 12px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  margin-top: 20px;
 }
 </style>

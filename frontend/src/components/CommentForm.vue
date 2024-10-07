@@ -1,19 +1,40 @@
 <template>
   <div class="comment-form">
     <form @submit.prevent="submitComment">
-      <textarea v-model="content" placeholder="Enter your comment" required class="comment-textarea"></textarea>
+      <textarea
+          v-model="content"
+          placeholder="Enter your comment"
+          required
+          class="comment-textarea"
+      ></textarea>
 
-      <label class="file-label">
-        <span>Attach Image:</span>
-        <input type="file" @change="onFileChange('image', $event)" accept="image/*" class="file-input" />
-      </label>
+      <div class="file-inputs">
+        <label class="file-label">
+          <input
+              type="file"
+              @change="onFileChange('image', $event)"
+              accept="image/*"
+              class="file-input"
+          />
+          <span class="file-button">
+            <i class="fas fa-image"></i> Attach Image
+          </span>
+        </label>
 
-      <label class="file-label">
-        <span>Attach Text File:</span>
-        <input type="file" @change="onFileChange('text_file', $event)" accept=".txt" class="file-input" />
-      </label>
+        <label class="file-label">
+          <input
+              type="file"
+              @change="onFileChange('text_file', $event)"
+              accept=".txt"
+              class="file-input"
+          />
+          <span class="file-button">
+            <i class="fas fa-file-alt"></i> Attach Text File
+          </span>
+        </label>
+      </div>
 
-      <button type="submit" class="submit-button">Reply</button>
+      <button type="submit" class="submit-button">Post Comment</button>
       <div v-if="error" class="error">{{ error }}</div>
     </form>
   </div>
@@ -40,7 +61,6 @@ export default {
   methods: {
     onFileChange(field, event) {
       const fileInput = event.target;
-      console.log(field);
       if (fileInput.files.length > 0) {
         this[field] = fileInput.files[0];
       } else {
@@ -75,50 +95,81 @@ export default {
             console.error('Error sending message:', error);
             this.error = 'Failed to submit comment. Please try again.';
           });
-    }
+    },
   },
 };
 </script>
 
 <style scoped>
+/* Import FontAwesome for icons */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
 .comment-form {
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .comment-textarea {
   width: 100%;
-  height: 120px;
-  padding: 10px;
+  min-height: 100px;
+  padding: 15px;
   margin-bottom: 1rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #dcdfe6;
   border-radius: 8px;
   resize: vertical;
   font-family: 'Roboto', sans-serif;
   box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.comment-textarea:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+.file-inputs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
 }
 
 .file-label {
-  display: block;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: #666;
+  position: relative;
+  display: inline-block;
 }
 
 .file-input {
-  display: block;
-  margin-top: 5px;
-  padding: 5px;
-  font-size: 0.9rem;
+  display: none;
+}
+
+.file-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #409eff;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+}
+
+.file-button i {
+  margin-right: 6px;
+}
+
+.file-button:hover {
+  background-color: #66b1ff;
 }
 
 .submit-button {
-  padding: 10px 15px;
-  background-color: #007bff;
+  padding: 10px 20px;
+  background-color: #67c23a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -128,7 +179,7 @@ export default {
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #85ce61;
 }
 
 .error {

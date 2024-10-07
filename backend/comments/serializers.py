@@ -11,10 +11,6 @@ from comments.models import Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    replies = serializers.ListSerializer(
-        child=RecursiveField(),
-        required=False,
-    )
     image = serializers.ImageField(required=False)
     text_file = serializers.FileField(required=False)
     user = serializers.StringRelatedField(read_only=True, source="user.username")
@@ -24,16 +20,15 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "content",
-            "replies",
             "user",
             "text_file",
             "image",
             "created_at",
-            "parent_message"
+            "parent_message",
         ]
         read_only_fields = [
             "created_at",
-            "id"
+            "id",
         ]
 
     @staticmethod
@@ -76,6 +71,34 @@ class CommentSerializer(serializers.ModelSerializer):
 
         return text_file
 
+
+class ListCommentSerializer(CommentSerializer):
+    has_replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "content",
+            "user",
+            "text_file",
+            "image",
+            "created_at",
+            "parent_message",
+            "has_replies",
+        ]
+        read_only_fields = [
+            "created_at",
+            "id",
+            "has_replies",
+        ]
+
+    @staticmethod
+    def get_has_replies(obj) -> bool:
+        return obj.replies_count > 0
+
+
+class CreateCommentSerializer(CommentSerializer):
     def create(self, validated_data):
         return Comment.objects.create(
             **validated_data,

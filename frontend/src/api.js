@@ -85,3 +85,14 @@ export function get_comments(cb) {
       cb(response.data.results);
   })
 }
+
+export function get_replies(commentId, page = 1) {
+  return axios.get(
+      `${process.env.VUE_APP_API_URL}comments/${commentId}/replies/`,
+      {
+        params: {
+          page: page,
+        },
+      }
+  );
+}
