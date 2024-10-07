@@ -14,7 +14,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -26,14 +26,15 @@ services:
     build:
       context: ./backend
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8001:8001"
     depends_on:
       - db
+      - redis
     env_file:
       - backend/.env
-    command: sh backend/ws-entrypoint.sh
+    command: sh ws-entrypoint.sh
 
   redis:
     image: redis:alpine
