@@ -35,9 +35,7 @@ export function connectWebSocket() {
   if(!user) {
     console.log("UNAUTHORIZED")
   }
-  let token = user.access;
-
-  socket = new WebSocket(`${process.env.VUE_APP_WS_URL}ws/comments/?token=${token}`);
+  socket = new WebSocket(`${process.env.VUE_APP_WS_URL}ws/comments/?token=${user.access}`);
 
   socket.onopen = () => {
     console.log("WebSocket connected");
@@ -48,7 +46,6 @@ export function connectWebSocket() {
       console.log("Token expired, refreshing token...");
       const newToken = await refreshToken();
       if (newToken) {
-        token = newToken;
         connectWebSocket();
       } else {
         console.error("Failed to refresh token");
