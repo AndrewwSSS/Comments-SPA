@@ -151,6 +151,9 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
     ),
+    "RERESH_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("REFRESH_TOKEN_LIFETIME", 10))
+    )
 }
 
 CACHES = {
