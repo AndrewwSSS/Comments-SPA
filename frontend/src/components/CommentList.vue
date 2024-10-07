@@ -1,6 +1,20 @@
 <template>
   <div class="comments-section">
     <h3>Comments</h3>
+
+    <!-- Sorting Controls -->
+    <div class="sorting-controls">
+      <label for="sortBy">Sort By:</label>
+      <select v-model="sortBy">
+        <option value="created_at">Date</option>
+        <option value="user">Username</option>
+      </select>
+
+      <button @click="toggleSortOrder">
+        {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
+      </button>
+    </div>
+
     <CommentForm :parentMessageId="null" />
 
     <div v-if="comments.length === 0 && !isLoading" class="no-comments">
@@ -9,7 +23,7 @@
 
     <div v-else class="comment-list">
       <CommentItem
-          v-for="comment in comments"
+          v-for="comment in sortedComments"
           :key="comment.id"
           :comment="comment"
           @updateReplies="updateCommentReplies"
@@ -42,21 +56,43 @@ export default {
       comments: [],
       isLoading: false,
       nextPageURL: null,
+      sortBy: 'created_at', // Default sorting by date
+      sortOrder: 'asc', // Default sorting order: ascending
     };
+  },
+  computed: {
+    // Computed property that returns sorted comments
+    sortedComments() {
+      return [...this.comments].sort((a, b) => {
+        let compare = 0;
+        if (this.sortBy === 'created_at') {
+          compare = new Date(a.created_at) - new Date(b.created_at);
+        } else if (this.sortBy === 'user') {
+          compare = a.user.localeCompare(b.user);
+        }
+
+        // Adjust for ascending or descending order
+        return this.sortOrder === 'asc' ? compare : -compare;
+      });
+    },
+    nextPageNumber() {
+      if (!this.nextPageURL)
+        return null;
+
+      const url = new URL(this.nextPageURL);
+      const params = new URLSearchParams(url.search);
+      return Number(params.get("page"));
+    },
   },
   methods: {
     updateCommentReplies({ commentId, newReplies, nextPageURL }) {
       const parentComment = this.findCommentById(this.comments, commentId);
-      console.log("parent", parentComment)
       if (parentComment) {
         if (!parentComment.replies) {
           parentComment.replies = [];
         }
-
         parentComment.replies = [...parentComment.replies, ...newReplies];
         parentComment.nextPageURL = nextPageURL;
-
-        console.log("test", parentComment);
       }
     },
     add_comment(newComment) {
@@ -65,10 +101,7 @@ export default {
       } else {
         const parentComment = this.findCommentById(this.comments, newComment.parent_message);
         if (parentComment) {
-          console.log(parentComment);
           parentComment.replies = [...parentComment.replies, newComment];
-        } else {
-          console.warn(`Parent comment with id ${newComment.parent_message} not found`);
         }
       }
     },
@@ -87,30 +120,21 @@ export default {
     },
     update_comments(data) {
       this.comments = [...this.comments, ...data.results];
-      this.nextPageURL = data.next
+      this.nextPageURL = data.next;
       this.isLoading = false;
     },
     fetchComments(page = 1) {
       this.isLoading = true;
-      get_comments(page, this.update_comments)
+      get_comments(page, this.update_comments);
     },
     loadMoreComments() {
-      if(this.nextPageNumber) {
-        this.fetchComments(
-            this.nextPageNumber,
-        )
+      if (this.nextPageNumber) {
+        this.fetchComments(this.nextPageNumber);
       }
     },
-  },
-  computed: {
-    nextPageNumber() {
-      if (!this.nextPageURL)
-        return null
-
-      const url = new URL(this.nextPageURL);
-      const params = new URLSearchParams(url.search);
-      return Number(params.get("page"));
-    },
+    toggleSortOrder() {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    }
   },
   mounted() {
     connectWebSocket();
@@ -156,6 +180,7 @@ h3 {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .load-more button:hover {
@@ -167,4 +192,67 @@ h3 {
   padding: 20px;
   color: #409eff;
 }
+
+.sorting-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.sorting-controls label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.sorting-controls select {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #333;
+  appearance: none; /* Hides the default dropdown arrow */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  cursor: pointer;
+}
+
+.sorting-controls select:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 5px rgba(64, 158, 255, 0.3);
+}
+
+.sorting-controls select:hover {
+  background-color: #e6f7ff;
+}
+
+.sorting-controls button {
+  padding: 8px 12px;
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.sorting-controls button:hover {
+  background-color: #66b1ff;
+}
+
+/* Custom Arrow for the Select Dropdown */
+.sorting-controls select::after {
+  content: '▼';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  pointer-events: none;
+  color: #999;
+}
 </style>
+
