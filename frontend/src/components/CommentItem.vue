@@ -35,7 +35,7 @@
 
       <!-- Load Replies Button -->
       <button
-          v-if="comment.has_replies && !repliesLoaded"
+          v-if="comment.replies_count && !repliesLoaded"
           @click="loadReplies"
           class="load-replies-button"
       >
@@ -43,17 +43,17 @@
       </button>
 
       <!-- Display Replies -->
-      <div v-if="replies && replies.length" class="comment-replies">
+      <div v-if="comment.replies" class="comment-replies">
         <CommentItem
-            v-for="reply in replies"
+            v-for="reply in comment.replies"
             :key="reply.id"
             :comment="reply"
             :isReply="true"
-            @commentAdded="fetchReplies"
+            @updateReplies="handleUpdateReplies"
         />
         <!-- Load More Replies Button -->
         <button
-            v-if="nextPage"
+            v-if="nextPageNumber"
             @click="loadReplies"
             class="load-more-button"
         >
@@ -64,7 +64,6 @@
       <!-- Reply Form -->
       <div v-if="showReplyForm" class="reply-form">
         <comment-form
-            @commentAdded="fetchReplies"
             :parentMessageId="comment.id"
         />
       </div>
@@ -89,16 +88,21 @@ export default {
   data() {
     return {
       showReplyForm: false,
-      replies: [],
       repliesLoaded: false,
-      nextPage: null,
-      defaultAvatar: '/default-avatar.png', // Default avatar path
+      nextPageURL: null,
     };
   },
   computed: {
     formattedContent() {
-      // Simple formatting, e.g., line breaks
       return this.comment.content.replace(/\n/g, '<br>');
+    },
+    nextPageNumber() {
+      if (!this.nextPageURL)
+        return null;
+
+      const url = new URL(this.nextPageURL);
+      const params = new URLSearchParams(url.search);
+      return Number(params.get("page"));
     },
   },
   methods: {
@@ -108,18 +112,23 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleString();
     },
+    handleUpdateReplies({ commentId, newReplies, nextPageURL }) {
+      this.$emit('updateReplies', { commentId, newReplies, nextPageURL });
+    },
     loadReplies() {
-      const page = this.nextPage ? this.nextPage : 1;
+      const page = this.nextPageNumber || 1;
       get_replies(this.comment.id, page)
           .then(response => {
             if (response.status === 200) {
               const data = response.data;
-              if (page === 1) {
-                this.replies = data.results;
-              } else {
-                this.replies = this.replies.concat(data.results);
-              }
-              this.nextPage = data.next ? page + 1 : null;
+              const newReplies = data.results.map(reply => ({
+                ...reply,
+                replies: [],
+              }));
+              console.log("newReplies", newReplies);
+              this.$emit('updateReplies', { commentId: this.comment.id, newReplies, nextPageURL: data.next });
+
+              this.nextPageURL = data.next;
               this.repliesLoaded = true;
             }
           })
@@ -127,18 +136,12 @@ export default {
             console.error('Error fetching replies:', error);
           });
     },
-    fetchReplies() {
-      // Refresh replies when a new reply is added
-      this.nextPage = null;
-      this.loadReplies();
-      this.showReplyForm = false;
-    },
   },
 };
 </script>
 
 <style scoped>
-/* Import FontAwesome for icons */
+
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
 .comment-item {
