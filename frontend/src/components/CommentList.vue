@@ -2,7 +2,6 @@
   <div class="comments-section">
     <h3>Comments</h3>
 
-    <!-- Sorting Controls -->
     <div class="sorting-controls">
       <label for="sortBy">Sort By:</label>
       <select v-model="sortBy">
@@ -56,12 +55,11 @@ export default {
       comments: [],
       isLoading: false,
       nextPageURL: null,
-      sortBy: 'created_at', // Default sorting by date
-      sortOrder: 'asc', // Default sorting order: ascending
+      sortBy: 'created_at',
+      sortOrder: 'desk',
     };
   },
   computed: {
-    // Computed property that returns sorted comments
     sortedComments() {
       return [...this.comments].sort((a, b) => {
         let compare = 0;
@@ -71,7 +69,6 @@ export default {
           compare = a.user.localeCompare(b.user);
         }
 
-        // Adjust for ascending or descending order
         return this.sortOrder === 'asc' ? compare : -compare;
       });
     },
