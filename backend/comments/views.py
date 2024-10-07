@@ -67,8 +67,7 @@ class CommentViewSet(
 
     @action(detail=True, methods=["get"], url_path="replies")
     def replies(self, request, pk=None):
-        comment = self.get_object()
-        replies_qs = comment.replies.all().select_related("user").annotate(
+        replies_qs = Comment.objects.filter(parent_message=pk).select_related("user").annotate(
             replies_count=Count("replies")
         )
         paginator = ReplyPagination()

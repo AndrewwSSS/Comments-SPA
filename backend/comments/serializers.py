@@ -73,7 +73,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ListCommentSerializer(CommentSerializer):
-    has_replies = serializers.SerializerMethodField()
+    replies_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Comment
@@ -85,17 +85,13 @@ class ListCommentSerializer(CommentSerializer):
             "image",
             "created_at",
             "parent_message",
-            "has_replies",
+            "replies_count",
         ]
         read_only_fields = [
             "created_at",
             "id",
-            "has_replies",
+            "replies_count",
         ]
-
-    @staticmethod
-    def get_has_replies(obj) -> bool:
-        return obj.replies_count > 0
 
 
 class CreateCommentSerializer(CommentSerializer):
