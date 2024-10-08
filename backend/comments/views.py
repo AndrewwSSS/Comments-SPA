@@ -30,7 +30,7 @@ class CommentViewSet(
         parent_message__isnull=True
     ).select_related("user").annotate(
         replies_count=Count("replies")
-    )
+    ).order_by("-created_at")
     ordering_fields = ["created_at", "user__username", "user__email"]
 
     def get_serializer_class(self):

@@ -17,7 +17,6 @@
       </nav>
     </header>
 
-    <!-- Wrap router-view in main -->
     <main>
       <router-view></router-view>
     </main>
@@ -29,7 +28,6 @@
 </template>
 
 <script>
-// import AuthService from './services/auth'
 import { mapState } from 'vuex';
 
 export default {
@@ -77,6 +75,7 @@ nav {
   display: flex;
   justify-content: flex-start;
   align-items: center;
+}
 
 .nav-group-right {
   display: flex;
@@ -135,7 +134,6 @@ footer {
   margin-top: auto;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
   nav {
     flex-direction: column;
@@ -145,6 +143,6 @@ footer {
   .nav-link, .logout-button {
     font-size: 0.9rem;
   }
-}}
+}
 
 </style>
