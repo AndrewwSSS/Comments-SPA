@@ -49,17 +49,15 @@
         </a>
       </div>
 
-      <!-- Кнопка для загрузки ответов -->
       <button
-        v-if="comment.replies_count && !repliesLoaded"
-        @click="loadReplies"
+        v-if="comment.replies_count"
+        @click="toggleReplies"
         class="load-replies-button"
       >
-        <i class="fas fa-comments"></i> View Replies ({{ comment.replies_count }})
+        <i class="fas fa-comments"></i> {{ showReplies ? 'Hide Replies' : 'View Replies' }} ({{ comment.replies_count }})
       </button>
 
-
-      <div v-if="comment.replies" class="comment-replies">
+      <div v-if="showReplies" class="comment-replies">
         <CommentItem
           v-for="reply in comment.replies"
           :key="reply.id"
@@ -103,6 +101,7 @@ export default {
       repliesLoaded: false,
       nextPageURL: null,
       previewVisible: false,
+      showReplies: false,
     };
   },
   computed: {
@@ -131,38 +130,44 @@ export default {
         window.open(this.comment.homepage_url, '_blank');
       }
     },
-    handleUpdateReplies({commentId, newReplies, nextPageURL}) {
-      this.$emit('updateReplies', {commentId, newReplies, nextPageURL});
+    handleUpdateReplies({ commentId, newReplies, nextPageURL }) {
+      this.$emit('updateReplies', { commentId, newReplies, nextPageURL });
     },
     loadReplies() {
       const page = this.nextPageNumber || 1;
       get_replies(this.comment.id, page)
-          .then((response) => {
-            if (response.status === 200) {
-              const data = response.data;
-              const newReplies = data.results.map((reply) => ({
-                ...reply,
-                replies: [],
-              }));
-              this.$emit('updateReplies', {
-                commentId: this.comment.id,
-                newReplies,
-                nextPageURL: data.next,
-              });
+        .then((response) => {
+          if (response.status === 200) {
+            const data = response.data;
+            const newReplies = data.results.map((reply) => ({
+              ...reply,
+              replies: [],
+            }));
+            this.$emit('updateReplies', {
+              commentId: this.comment.id,
+              newReplies,
+              nextPageURL: data.next,
+            });
 
-              this.nextPageURL = data.next;
-              this.repliesLoaded = true;
-            }
-          })
-          .catch((error) => {
-            console.error('Error fetching replies:', error);
-          });
+            this.nextPageURL = data.next;
+            this.repliesLoaded = true;
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching replies:', error);
+        });
     },
     showPreview() {
       this.previewVisible = true;
     },
     hidePreview() {
       this.previewVisible = false;
+    },
+    toggleReplies() {
+      if (!this.repliesLoaded && !this.showReplies) {
+        this.loadReplies();
+      }
+      this.showReplies = !this.showReplies;
     },
     async downloadFile(fileUrl) {
       try {
@@ -179,8 +184,8 @@ export default {
         link.download = this.getFileName(fileUrl);
         document.body.appendChild(link);
         link.click();
-        URL.revokeObjectURL(objectURL); // Освобождаем память
-        document.body.removeChild(link); // Удаляем ссылку из DOM
+        URL.revokeObjectURL(objectURL);
+        document.body.removeChild(link);
       } catch (error) {
         console.error('Download error:', error);
       }
@@ -267,7 +272,6 @@ export default {
   line-height: 1.6;
 }
 
-/* Кнопка для перехода на домашнюю страницу */
 .homepage-button {
   background-color: #409eff;
   color: white;
