@@ -22,11 +22,11 @@ axios.interceptors.response.use(
         return Promise.reject(error);
       }
 
-        if (error.config.url.includes('/api/users/token/refresh/')) {
-            store.dispatch('auth/logout');
-            window.location.href = '/login';
-            return Promise.reject(error);
-        }
+      if (error.config.url.includes('/api/users/token/refresh/')) {
+          store.dispatch('auth/logout');
+          window.location.href = '/login';
+          return Promise.reject(error);
+      }
 
       let user = JSON.parse(localStorage.getItem('user'));
 
@@ -39,7 +39,7 @@ axios.interceptors.response.use(
     let refresh_token = user.refresh;
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/api/users/token/refresh/`,
+        `${process.env.VUE_APP_API_URL}/api/users/token/refresh/`,
         { refresh: refresh_token }
       );
 
