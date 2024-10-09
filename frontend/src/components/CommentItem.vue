@@ -2,25 +2,34 @@
   <div :class="['comment-item', isReply ? 'reply-item' : '']">
     <div class="comment-body">
       <div class="comment-header">
-        <div>
+        <div class="comment-user-info">
           <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
           <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         </div>
+
         <div class="comment-actions">
+          <button
+            v-if="comment.homepage_url"
+            @click="handleHomepageClick"
+            class="homepage-button"
+          >
+            <i class="fas fa-external-link-alt"></i> Visit Homepage
+          </button>
+
           <span @click="toggleReplyForm" class="icon" title="Reply">
             <i class="fas fa-reply"></i>
           </span>
         </div>
       </div>
+
       <p class="comment-text" v-html="formattedContent"></p>
 
-      <!-- Отображение изображения -->
       <div v-if="comment.image" class="image-container">
         <img
-            :src="comment.image"
-            alt="comment image"
-            class="comment-image"
-            @click="showPreview"
+          :src="comment.image"
+          alt="comment image"
+          class="comment-image"
+          @click="showPreview"
         />
       </div>
 
@@ -32,34 +41,34 @@
 
       <div v-if="comment.text_file" class="file-container">
         <a
-            href="#"
-            class="download-button"
-            @click.prevent="downloadFile(comment.text_file)"
+          href="#"
+          class="download-button"
+          @click.prevent="downloadFile(comment.text_file)"
         >
           <i class="fas fa-file-download"></i> Download {{ getFileName(comment.text_file) }}
         </a>
       </div>
 
       <button
-          v-if="comment.replies_count && !repliesLoaded"
-          @click="loadReplies"
-          class="load-replies-button"
+        v-if="comment.replies_count && !repliesLoaded"
+        @click="loadReplies"
+        class="load-replies-button"
       >
         <i class="fas fa-comments"></i> View Replies ({{ comment.replies_count }})
       </button>
 
       <div v-if="comment.replies" class="comment-replies">
         <CommentItem
-            v-for="reply in comment.replies"
-            :key="reply.id"
-            :comment="reply"
-            :isReply="true"
-            @updateReplies="handleUpdateReplies"
+          v-for="reply in comment.replies"
+          :key="reply.id"
+          :comment="reply"
+          :isReply="true"
+          @updateReplies="handleUpdateReplies"
         />
         <button
-            v-if="nextPageNumber"
-            @click="loadReplies"
-            class="load-more-button"
+          v-if="nextPageNumber"
+          @click="loadReplies"
+          class="load-more-button"
         >
           <i class="fas fa-chevron-down"></i> Load More Replies
         </button>
@@ -92,6 +101,7 @@ export default {
       repliesLoaded: false,
       nextPageURL: null,
       previewVisible: false,
+      showModal: false,
     };
   },
   computed: {
@@ -113,16 +123,24 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleString();
     },
-    handleUpdateReplies({ commentId, newReplies, nextPageURL }) {
-      this.$emit('updateReplies', { commentId, newReplies, nextPageURL });
+    handleHomepageClick() {
+      if (this.comment.homepage_url) {
+        window.open(this.comment.homepage_url, '_blank');
+      }
+    },
+    closeModal() {
+      this.showModal = false;
+    },
+    handleUpdateReplies({commentId, newReplies, nextPageURL}) {
+      this.$emit('updateReplies', {commentId, newReplies, nextPageURL});
     },
     loadReplies() {
       const page = this.nextPageNumber || 1;
       get_replies(this.comment.id, page)
-          .then(response => {
+          .then((response) => {
             if (response.status === 200) {
               const data = response.data;
-              const newReplies = data.results.map(reply => ({
+              const newReplies = data.results.map((reply) => ({
                 ...reply,
                 replies: [],
               }));
@@ -136,7 +154,7 @@ export default {
               this.repliesLoaded = true;
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('Error fetching replies:', error);
           });
     },
@@ -168,7 +186,6 @@ export default {
       }
     },
     getFileName(fileUrl) {
-      // Извлекает имя файла из URL
       return fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
     },
   },
@@ -211,6 +228,11 @@ export default {
   align-items: center;
 }
 
+.comment-user-info {
+  display: flex;
+  align-items: center;
+}
+
 .comment-username {
   font-weight: 500;
   color: #333;
@@ -225,6 +247,7 @@ export default {
 .comment-actions {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .icon {
@@ -242,6 +265,23 @@ export default {
   margin: 10px 0;
   color: #606266;
   line-height: 1.6;
+}
+
+/* Кнопка для перехода на домашнюю страницу */
+.homepage-button {
+  background-color: #409eff;
+  color: white;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.homepage-button:hover {
+  background-color: #66b1ff;
 }
 
 .comment-image {

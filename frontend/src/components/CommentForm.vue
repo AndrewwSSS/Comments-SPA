@@ -16,6 +16,18 @@
           ref="commentTextarea"
       ></textarea>
 
+      <div class="homepage-url-input">
+        <label for="homepage_url">Homepage URL:</label>
+        <input
+          type="text"
+          v-model="homepage_url"
+          id="homepage_url"
+          class="url-input"
+          placeholder="https://example.com(optional)"
+        />
+        <div v-if="urlError" class="error">{{ urlError }}</div>
+      </div>
+
       <div class="file-inputs">
         <label class="file-label">
           <input
@@ -79,10 +91,12 @@ export default {
   data() {
     return {
       content: '',
+      homepage_url: '',
       image: null,
-      imagePreview: null, // Для предварительного просмотра изображения
+      imagePreview: null,
       text_file: null,
       error: null,
+      urlError: null,
     };
   },
   methods: {
@@ -114,7 +128,7 @@ export default {
       reader.onload = (e) => {
         img.src = e.target.result;
         img.onload = () => {
-          let {width, height} = img;
+          let { width, height } = img;
 
           if (width > maxWidth || height > maxHeight) {
             const aspectRatio = width / height;
@@ -134,15 +148,16 @@ export default {
           ctx.drawImage(img, 0, 0, width, height);
 
           canvas.toBlob(
-              (blob) => {
-                if (this.imagePreview) {
-                  URL.revokeObjectURL(this.imagePreview);
-                }
-                this.image = new File([blob], file.name, {type: file.type});
-                this.imagePreview = URL.createObjectURL(blob);               this.error = null;
-              },
-              file.type,
-              0.95
+            (blob) => {
+              if (this.imagePreview) {
+                URL.revokeObjectURL(this.imagePreview);
+              }
+              this.image = new File([blob], file.name, { type: file.type });
+              this.imagePreview = URL.createObjectURL(blob);
+              this.error = null;
+            },
+            file.type,
+            0.95
           );
         };
       };
@@ -170,7 +185,7 @@ export default {
     },
     insertTag(openTag, closeTag) {
       const textarea = this.$refs.commentTextarea;
-      const {selectionStart, selectionEnd} = textarea;
+      const { selectionStart, selectionEnd } = textarea;
       const beforeText = this.content.substring(0, selectionStart);
       const afterText = this.content.substring(selectionEnd);
       const selectedText = this.content.substring(selectionStart, selectionEnd);
@@ -180,12 +195,37 @@ export default {
       this.$nextTick(() => {
         textarea.focus();
         textarea.setSelectionRange(
-            selectionStart + openTag.length + 2,
-            selectionEnd + openTag.length + 2
+          selectionStart + openTag.length + 2,
+          selectionEnd + openTag.length + 2
         );
       });
     },
+    validateURL() {
+      if (this.homepage_url) {
+        const urlPattern = new RegExp(
+          '^(https?:\\/\\/)?' + // Protocol
+          '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|' + // Domain name
+          '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IP (v4) address
+          '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // Port and path
+          '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // Query string
+          '(\\#[-a-zA-Z\\d_]*)?$',
+          'i'
+        );
+        if (!urlPattern.test(this.homepage_url)) {
+          this.urlError = 'Please enter a valid URL.';
+          return false;
+        } else {
+          this.urlError = null;
+        }
+      }
+      return true;
+    },
     submitComment() {
+      // Проверка URL
+      if (!this.validateURL()) {
+        return;
+      }
+
       const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, '').trim();
 
       if (!strippedContent && !this.image && !this.text_file) {
@@ -208,17 +248,22 @@ export default {
         formData.append('parent_message', this.parentMessageId);
       }
 
+      if (this.homepage_url) {
+        formData.append('homepage_url', this.homepage_url);
+      }
+
       send_message(formData)
-          .then(() => {
-            this.resetForm();
-          })
-          .catch((error) => {
-            console.error('Error sending message:', error);
-            this.error = 'Failed to submit comment. Please try again.';
-          });
+        .then(() => {
+          this.resetForm();
+        })
+        .catch((error) => {
+          console.error('Error sending message:', error);
+          this.error = 'Failed to submit comment. Please try again.';
+        });
     },
     resetForm() {
       this.content = '';
+      this.homepage_url = ''; // Сброс поля URL
 
       if (this.imagePreview) {
         URL.revokeObjectURL(this.imagePreview);
@@ -227,6 +272,7 @@ export default {
       this.imagePreview = null;
       this.text_file = null;
       this.error = null;
+      this.urlError = null;
     },
   },
 };
@@ -280,6 +326,25 @@ export default {
 }
 
 .comment-textarea:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+/* Поле для ввода URL */
+.homepage-url-input {
+  margin-bottom: 1rem;
+}
+
+.url-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.url-input:focus {
   border-color: #409eff;
   outline: none;
 }
