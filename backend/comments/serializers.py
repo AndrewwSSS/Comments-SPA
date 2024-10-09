@@ -25,6 +25,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "image",
             "created_at",
             "parent_message",
+            "homepage_url"
         ]
         read_only_fields = [
             "created_at",
@@ -86,6 +87,7 @@ class ListCommentSerializer(CommentSerializer):
             "created_at",
             "parent_message",
             "replies_count",
+            "homepage_url"
         ]
         read_only_fields = [
             "created_at",
