@@ -7,11 +7,7 @@
           <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         </div>
         <div class="comment-actions">
-          <span
-              @click="toggleReplyForm"
-              class="icon"
-              title="Reply"
-          >
+          <span @click="toggleReplyForm" class="icon" title="Reply">
             <i class="fas fa-reply"></i>
           </span>
         </div>
@@ -23,7 +19,16 @@
           :src="comment.image"
           alt="comment image"
           class="comment-image"
+          @click="showPreview"
       />
+
+      <!-- Modal for full-screen preview -->
+      <div v-if="previewVisible" class="image-modal" @click="hidePreview">
+        <div class="image-modal-content">
+          <img :src="comment.image" alt="Full size image" />
+        </div>
+      </div>
+
       <a
           v-if="comment.text_file"
           :href="comment.text_file"
@@ -63,9 +68,7 @@
 
       <!-- Reply Form -->
       <div v-if="showReplyForm" class="reply-form">
-        <comment-form
-            :parentMessageId="comment.id"
-        />
+        <comment-form :parentMessageId="comment.id" />
       </div>
     </div>
   </div>
@@ -90,6 +93,7 @@ export default {
       showReplyForm: false,
       repliesLoaded: false,
       nextPageURL: null,
+      previewVisible: false, // для отображения модального окна
     };
   },
   computed: {
@@ -97,8 +101,7 @@ export default {
       return this.comment.content.replace(/\n/g, '<br>');
     },
     nextPageNumber() {
-      if (!this.nextPageURL)
-        return null;
+      if (!this.nextPageURL) return null;
 
       const url = new URL(this.nextPageURL);
       const params = new URLSearchParams(url.search);
@@ -125,8 +128,11 @@ export default {
                 ...reply,
                 replies: [],
               }));
-              console.log("newReplies", newReplies);
-              this.$emit('updateReplies', { commentId: this.comment.id, newReplies, nextPageURL: data.next });
+              this.$emit('updateReplies', {
+                commentId: this.comment.id,
+                newReplies,
+                nextPageURL: data.next,
+              });
 
               this.nextPageURL = data.next;
               this.repliesLoaded = true;
@@ -136,12 +142,17 @@ export default {
             console.error('Error fetching replies:', error);
           });
     },
+    showPreview() {
+      this.previewVisible = true;
+    },
+    hidePreview() {
+      this.previewVisible = false;
+    },
   },
 };
 </script>
 
 <style scoped>
-
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
 .comment-item {
@@ -214,6 +225,37 @@ export default {
   max-width: 100%;
   margin-top: 10px;
   border-radius: 8px;
+  cursor: pointer;
+}
+
+.comment-image:hover {
+  opacity: 0.8;
+}
+
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Затемненный фон */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Высокий z-index, чтобы быть поверх остальных элементов */
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.image-modal-content img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .comment-file-link {
