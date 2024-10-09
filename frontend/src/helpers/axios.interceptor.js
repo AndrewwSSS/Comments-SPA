@@ -5,12 +5,6 @@ axios.interceptors.request.use(
     config => {
         const user = JSON.parse(localStorage.getItem('user'));
 
-        if (config.url.includes('/api/users/token/refresh/')) {
-            store.dispatch('auth/logout');
-            window.location.href = '/login';
-            return
-        }
-
         if (user && user.access) {
             config.headers['Authorization'] = 'Bearer ' + user.access;
         }
@@ -27,6 +21,12 @@ axios.interceptors.response.use(
       if (!error.response || error.response.status !== 401) {
         return Promise.reject(error);
       }
+
+        if (error.config.url.includes('/api/users/token/refresh/')) {
+            store.dispatch('auth/logout');
+            window.location.href = '/login';
+            return Promise.reject(error);
+        }
 
       let user = JSON.parse(localStorage.getItem('user'));
 
