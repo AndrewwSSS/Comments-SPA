@@ -42,6 +42,27 @@
         </label>
       </div>
 
+      <!-- Preview Section -->
+      <div v-if="image || text_file" class="file-preview-section">
+        <div v-if="image" class="file-preview">
+          <div class="preview-container">
+            <img :src="imagePreview" alt="Preview Image" class="image-preview" />
+            <button @click="removeFile('image')" class="remove-file-button" type="button">
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <div v-if="text_file" class="file-preview">
+          <div class="preview-container">
+            <p>{{ text_file.name }}</p>
+            <button @click="removeFile('text_file')" class="remove-file-button" type="button">
+              &times;
+            </button>
+          </div>
+        </div>
+      </div>
+
       <button type="submit" class="submit-button">Post Comment</button>
       <div v-if="error" class="error">{{ error }}</div>
     </form>
@@ -53,12 +74,13 @@ import { send_message } from "@/api";
 
 export default {
   props: {
-    parentMessageId: Number
+    parentMessageId: Number,
   },
   data() {
     return {
       content: '',
       image: null,
+      imagePreview: null, // Для предварительного просмотра изображения
       text_file: null,
       error: null,
     };
@@ -67,11 +89,14 @@ export default {
     onFileChange(field, event) {
       const file = event.target.files[0];
       if (!file) return;
+
       if (field === 'image') {
         this.handleImage(file);
       } else if (field === 'text_file') {
-          this.handleTextFile(file);
+        this.handleTextFile(file);
       }
+
+      event.target.value = '';
     },
     handleImage(file) {
       const fileTypes = ['image/jpeg', 'image/png', 'image/gif'];
@@ -89,9 +114,8 @@ export default {
       reader.onload = (e) => {
         img.src = e.target.result;
         img.onload = () => {
-          let { width, height } = img;
+          let {width, height} = img;
 
-          // Resize image proportionally if larger than allowed dimensions
           if (width > maxWidth || height > maxHeight) {
             const aspectRatio = width / height;
             if (width > height) {
@@ -103,17 +127,23 @@ export default {
             }
           }
 
-          // Use canvas to resize the image
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           canvas.width = width;
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Convert the canvas to a blob and create a new file
-          canvas.toBlob((blob) => {
-            this.image = new File([blob], file.name, { type: file.type });
-          }, file.type);
+          canvas.toBlob(
+              (blob) => {
+                if (this.imagePreview) {
+                  URL.revokeObjectURL(this.imagePreview);
+                }
+                this.image = new File([blob], file.name, {type: file.type});
+                this.imagePreview = URL.createObjectURL(blob);               this.error = null;
+              },
+              file.type,
+              0.95
+          );
         };
       };
 
@@ -124,28 +154,41 @@ export default {
         this.error = 'Text file size must not exceed 100 KB.';
         return;
       }
-
       this.text_file = file;
+      this.error = null;
+    },
+    removeFile(field) {
+      if (field === 'image') {
+        if (this.imagePreview) {
+          URL.revokeObjectURL(this.imagePreview);
+        }
+        this.image = null;
+        this.imagePreview = null;
+      } else if (field === 'text_file') {
+        this.text_file = null;
+      }
     },
     insertTag(openTag, closeTag) {
       const textarea = this.$refs.commentTextarea;
-      const { selectionStart, selectionEnd } = textarea;
+      const {selectionStart, selectionEnd} = textarea;
       const beforeText = this.content.substring(0, selectionStart);
-      const afterText = this.content.substring(selectionEnd, this.content.length);
+      const afterText = this.content.substring(selectionEnd);
       const selectedText = this.content.substring(selectionStart, selectionEnd);
 
       this.content = `${beforeText}<${openTag}>${selectedText}${closeTag}${afterText}`;
 
       this.$nextTick(() => {
         textarea.focus();
-        textarea.setSelectionRange(selectionStart + openTag.length + 2, selectionEnd + openTag.length + 2);
+        textarea.setSelectionRange(
+            selectionStart + openTag.length + 2,
+            selectionEnd + openTag.length + 2
+        );
       });
     },
-
     submitComment() {
-      const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, "").trim();
+      const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, '').trim();
 
-      if (!strippedContent) {
+      if (!strippedContent && !this.image && !this.text_file) {
         this.error = 'Comment cannot be empty!';
         return;
       }
@@ -176,7 +219,12 @@ export default {
     },
     resetForm() {
       this.content = '';
+
+      if (this.imagePreview) {
+        URL.revokeObjectURL(this.imagePreview);
+      }
       this.image = null;
+      this.imagePreview = null;
       this.text_file = null;
       this.error = null;
     },
@@ -270,6 +318,48 @@ export default {
 
 .file-button:hover {
   background-color: #66b1ff;
+}
+
+.file-preview-section {
+  margin-top: 10px;
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.preview-container {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview {
+  max-width: 100px;
+  border-radius: 8px;
+}
+
+.remove-file-button {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-file-button:hover {
+  background-color: darkred;
 }
 
 .submit-button {
