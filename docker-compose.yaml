@@ -1,69 +1,82 @@
-services:
-  db:
-    image:
-      postgres:16.0-alpine3.17
-    restart: always
-    env_file:
-      - backend/.env
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
+  services:
+    db:
+      image:
+        postgres:16.0-alpine3.17
+      restart: always
+      env_file:
+        - backend/.env
+      ports:
+        - "5432:5432"
+      volumes:
+        - db_data:/var/lib/postgresql/data
 
-  backend:
-    build:
-      context: ./backend
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    env_file:
-      - backend/.env
+    backend:
+      build:
+        context: ./backend
+      volumes:
+        - ./backend:/app
+      ports:
+        - "8000:8000"
+      depends_on:
+        - db
+      env_file:
+        - backend/.env
 
-  backend-ws:
-    build:
-      context: ./backend
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8001:8001"
-    depends_on:
-      - db
-      - redis
-    env_file:
-      - backend/.env
-    command: sh ws-entrypoint.sh
+    backend-ws:
+      build:
+        context: ./backend
+      volumes:
+        - ./backend:/app
+      ports:
+        - "8001:8001"
+      depends_on:
+        - db
+        - redis
+      env_file:
+        - backend/.env
+      command: sh ws-entrypoint.sh
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+    redis:
+      image: redis:alpine
+      ports:
+        - "6379:6379"
 
-  redisinsight:
-    image: redislabs/redisinsight:latest
-    ports:
-      - "5540:5540"
-    depends_on:
-      - redis
+    redisinsight:
+      image: redislabs/redisinsight:latest
+      ports:
+        - "5540:5540"
+      depends_on:
+        - redis
 
-  celery:
-    build:
-      context: ./backend
-    command:
-      celery -A comments_spa worker -l INFO
+    celery:
+      build:
+        context: ./backend
+      command:
+        celery -A comments_spa worker -l INFO
 
-  frontend:
-    build:
-      context: ./frontend
-    volumes:
-      - ./frontend:/app
-    depends_on:
-      - backend
-    ports:
-      - "8080:8080"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-volumes:
-  db_data:
+    frontend:
+      build:
+        context: ./frontend
+      volumes:
+        - ./frontend:/app
+      depends_on:
+        - backend
+      ports:
+        - "8080:8080"
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+    nginx:
+      build:
+        context: .
+        dockerfile: nginx/Dockerfile
+      volumes:
+        - static_volume:/staticfiles
+      ports:
+        - "80:80"
+      depends_on:
+        - backend
+        - frontend
+        - backend-ws
+  volumes:
+    db_data:
+    static_volume:
