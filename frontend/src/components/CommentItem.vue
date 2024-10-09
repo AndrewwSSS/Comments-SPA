@@ -16,7 +16,7 @@
             <i class="fas fa-external-link-alt"></i> Visit Homepage
           </button>
 
-          <span @click="toggleReplyForm" class="icon" title="Reply">
+          <span @click="toggleForm(comment.id)" class="icon" title="Reply">
             <i class="fas fa-reply"></i>
           </span>
         </div>
@@ -49,6 +49,7 @@
         </a>
       </div>
 
+      <!-- Кнопка для загрузки ответов -->
       <button
         v-if="comment.replies_count && !repliesLoaded"
         @click="loadReplies"
@@ -56,6 +57,7 @@
       >
         <i class="fas fa-comments"></i> View Replies ({{ comment.replies_count }})
       </button>
+
 
       <div v-if="comment.replies" class="comment-replies">
         <CommentItem
@@ -74,7 +76,7 @@
         </button>
       </div>
 
-      <div v-if="showReplyForm" class="reply-form">
+      <div v-if="isReplyFormVisible" class="reply-form">
         <comment-form :parentMessageId="comment.id" />
       </div>
     </div>
@@ -85,6 +87,7 @@
 import CommentItem from './CommentItem.vue';
 import CommentForm from "@/components/CommentForm.vue";
 import { get_replies } from "@/api";
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   components: { CommentForm, CommentItem },
@@ -97,14 +100,13 @@ export default {
   },
   data() {
     return {
-      showReplyForm: false,
       repliesLoaded: false,
       nextPageURL: null,
       previewVisible: false,
-      showModal: false,
     };
   },
   computed: {
+    ...mapGetters('commentForm', ['visibleForm']),
     formattedContent() {
       return this.comment.content.replace(/\n/g, '<br>');
     },
@@ -115,11 +117,12 @@ export default {
       const params = new URLSearchParams(url.search);
       return Number(params.get("page"));
     },
+    isReplyFormVisible() {
+      return this.visibleForm === this.comment.id;
+    },
   },
   methods: {
-    toggleReplyForm() {
-      this.showReplyForm = !this.showReplyForm;
-    },
+    ...mapActions('commentForm', ['toggleForm']),
     formatDate(date) {
       return new Date(date).toLocaleString();
     },
@@ -127,9 +130,6 @@ export default {
       if (this.comment.homepage_url) {
         window.open(this.comment.homepage_url, '_blank');
       }
-    },
-    closeModal() {
-      this.showModal = false;
     },
     handleUpdateReplies({commentId, newReplies, nextPageURL}) {
       this.$emit('updateReplies', {commentId, newReplies, nextPageURL});
