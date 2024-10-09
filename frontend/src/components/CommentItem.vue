@@ -14,31 +14,32 @@
       </div>
       <p class="comment-text" v-html="formattedContent"></p>
 
-      <img
-          v-if="comment.image"
-          :src="comment.image"
-          alt="comment image"
-          class="comment-image"
-          @click="showPreview"
-      />
+      <!-- Отображение изображения -->
+      <div v-if="comment.image" class="image-container">
+        <img
+            :src="comment.image"
+            alt="comment image"
+            class="comment-image"
+            @click="showPreview"
+        />
+      </div>
 
-      <!-- Modal for full-screen preview -->
       <div v-if="previewVisible" class="image-modal" @click="hidePreview">
         <div class="image-modal-content">
           <img :src="comment.image" alt="Full size image" />
         </div>
       </div>
 
-      <a
-          v-if="comment.text_file"
-          :href="comment.text_file"
-          class="comment-file-link"
-          download
-      >
-        <i class="fas fa-file-download"></i> Download file
-      </a>
+      <div v-if="comment.text_file" class="file-container">
+        <a
+            href="#"
+            class="download-button"
+            @click.prevent="downloadFile(comment.text_file)"
+        >
+          <i class="fas fa-file-download"></i> Download {{ getFileName(comment.text_file) }}
+        </a>
+      </div>
 
-      <!-- Load Replies Button -->
       <button
           v-if="comment.replies_count && !repliesLoaded"
           @click="loadReplies"
@@ -47,7 +48,6 @@
         <i class="fas fa-comments"></i> View Replies ({{ comment.replies_count }})
       </button>
 
-      <!-- Display Replies -->
       <div v-if="comment.replies" class="comment-replies">
         <CommentItem
             v-for="reply in comment.replies"
@@ -56,7 +56,6 @@
             :isReply="true"
             @updateReplies="handleUpdateReplies"
         />
-        <!-- Load More Replies Button -->
         <button
             v-if="nextPageNumber"
             @click="loadReplies"
@@ -66,7 +65,6 @@
         </button>
       </div>
 
-      <!-- Reply Form -->
       <div v-if="showReplyForm" class="reply-form">
         <comment-form :parentMessageId="comment.id" />
       </div>
@@ -93,7 +91,7 @@ export default {
       showReplyForm: false,
       repliesLoaded: false,
       nextPageURL: null,
-      previewVisible: false, // для отображения модального окна
+      previewVisible: false,
     };
   },
   computed: {
@@ -147,6 +145,31 @@ export default {
     },
     hidePreview() {
       this.previewVisible = false;
+    },
+    async downloadFile(fileUrl) {
+      try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error('Failed to download file.');
+        }
+
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        const objectURL = URL.createObjectURL(blob);
+
+        link.href = objectURL;
+        link.download = this.getFileName(fileUrl);
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(objectURL); // Освобождаем память
+        document.body.removeChild(link); // Удаляем ссылку из DOM
+      } catch (error) {
+        console.error('Download error:', error);
+      }
+    },
+    getFileName(fileUrl) {
+      // Извлекает имя файла из URL
+      return fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
     },
   },
 };
@@ -238,11 +261,11 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8); /* Затемненный фон */
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Высокий z-index, чтобы быть поверх остальных элементов */
+  z-index: 1000;
 }
 
 .image-modal-content {
@@ -268,6 +291,23 @@ export default {
 
 .comment-file-link:hover {
   text-decoration: underline;
+}
+
+.file-container {
+  margin-top: 10px;
+}
+
+.download-button {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #409eff;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.download-button:hover {
+  background-color: #66b1ff;
 }
 
 .load-replies-button,
