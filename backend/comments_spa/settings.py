@@ -65,6 +65,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080"
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "comments_spa.urls"
 
@@ -149,10 +150,10 @@ MAX_IMAGE_HEIGHT_KB = 240
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
+        minutes=float(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
     ),
-    "RERESH_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("REFRESH_TOKEN_LIFETIME", 10))
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        minutes=float(os.getenv("REFRESH_TOKEN_LIFETIME", 10))
     )
 }
 
