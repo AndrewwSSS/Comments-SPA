@@ -130,8 +130,8 @@ export default {
         window.open(this.comment.homepage_url, '_blank');
       }
     },
-    handleUpdateReplies({ commentId, newReplies, nextPageURL }) {
-      this.$emit('updateReplies', { commentId, newReplies, nextPageURL });
+    handleUpdateReplies({ comment, newReplies, nextPageURL }) {
+      this.$emit('updateReplies', { comment, newReplies, nextPageURL });
     },
     loadReplies() {
       const page = this.nextPageNumber || 1;
@@ -144,7 +144,7 @@ export default {
               replies: [],
             }));
             this.$emit('updateReplies', {
-              commentId: this.comment.id,
+              comment: this.comment,
               newReplies,
               nextPageURL: data.next,
             });

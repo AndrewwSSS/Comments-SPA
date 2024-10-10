@@ -82,26 +82,37 @@ export default {
     },
   },
   methods: {
-    updateCommentReplies({ commentId, newReplies, nextPageURL }) {
-      const parentComment = this.findCommentById(this.comments, commentId);
+    updateCommentReplies({ comment, newReplies, nextPageURL }) {
+      console.log("updateCommentReplies", comment, newReplies, nextPageURL);
+      const parentComment = comment;
+
       if (parentComment) {
         if (!parentComment.replies) {
           parentComment.replies = [];
         }
-        parentComment.replies = [...parentComment.replies, ...newReplies];
+
+        const existingIds = new Set(parentComment.replies.map(comment => comment.id));
+        const uniqueNewComments = newReplies.filter(comment => !existingIds.has(comment.id));
+
+        parentComment.replies = [...parentComment.replies, ...uniqueNewComments];
         parentComment.nextPageURL = nextPageURL;
       }
     },
     add_comment(newComment) {
+      console.log("New comment: ", newComment);
       if (newComment.parent_message === null || newComment.parent_message === undefined) {
+        console.log('New comment added to root');
         this.comments.unshift(newComment);
       } else {
         const parentComment = this.findCommentById(this.comments, newComment.parent_message);
+        console.log("Parent element: ", parentComment);
         if (!parentComment.replies) {
           parentComment.replies = []
         }
         if (parentComment) {
           parentComment.replies = [...parentComment.replies, newComment];
+          parentComment.replies_count = parentComment.replies.length;
+          console.log("parent after adding comment: ", parentComment);
         }
       }
     },
@@ -119,7 +130,14 @@ export default {
       return null;
     },
     update_comments(data) {
-      this.comments = [...this.comments, ...data.results];
+      console.log("update_comments", data)
+      const newComments = data.results;
+
+      const existingIds = new Set(this.comments.map(comment => comment.id));
+      const uniqueNewComments = newComments.filter(comment => !existingIds.has(comment.id));
+
+      this.comments = [...this.comments, ...uniqueNewComments];
+
       this.nextPageURL = data.next;
       this.isLoading = false;
     },
