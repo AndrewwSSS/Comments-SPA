@@ -8,6 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from channels.layers import get_channel_layer
 from django.core.cache import cache
+from django.conf import settings
 
 from comments.models import Comment
 from comments.serializers import (
@@ -18,7 +19,7 @@ from comments.serializers import (
 
 
 class ReplyPagination(PageNumberPagination):
-    page_size = 10
+    page_size = settings.REPLY_PAGE_SIZE
     page_size_query_param = 'page_size'
 
 
@@ -42,7 +43,7 @@ class CommentViewSet(
         else:
             return CommentSerializer
 
-    @method_decorator(cache_page(60 * 5, key_prefix="comments_list"))
+    @method_decorator(cache_page(settings.CACHE_TTL, key_prefix="comments_list"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
