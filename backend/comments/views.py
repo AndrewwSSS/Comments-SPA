@@ -19,7 +19,7 @@ from comments.serializers import (
 
 
 class ReplyPagination(PageNumberPagination):
-    page_size = settings.REPLY_PAGE_SIZE
+    page_size = settings.REPLIES_PAGE_SIZE
     page_size_query_param = 'page_size'
 
 
