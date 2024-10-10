@@ -79,34 +79,3 @@ class CaptchaAPIView(APIView):
             "captcha_key": captcha_key,
             "captcha_format": "png"
         })
-
-    @staticmethod
-    def post(request, *args, **kwargs):
-        captcha_key = request.data.get("captcha_key")
-        user_input = request.data.get("captcha_input", "")
-
-        if not captcha_key:
-            return Response(
-                {"message": "Captcha key not provided."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        captcha_text = cache.get(captcha_key)
-
-        if not captcha_text:
-            return Response(
-                {"message": "Captcha has expired or not found."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if captcha_text.lower() == user_input.lower():
-            cache.delete(captcha_key)
-            return Response(
-                {"message": "Captcha validated successfully!"},
-                status=status.HTTP_200_OK
-            )
-
-        return Response(
-            {"message": "Invalid captcha input."},
-            status=status.HTTP_400_BAD_REQUEST
-        )

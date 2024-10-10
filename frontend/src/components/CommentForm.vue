@@ -19,11 +19,11 @@
       <div class="homepage-url-input">
         <label for="homepage_url">Homepage URL:</label>
         <input
-          type="text"
-          v-model="homepage_url"
-          id="homepage_url"
-          class="url-input"
-          placeholder="https://example.com(optional)"
+            type="text"
+            v-model="homepage_url"
+            id="homepage_url"
+            class="url-input"
+            placeholder="https://example.com(optional)"
         />
         <div v-if="urlError" class="error">{{ urlError }}</div>
       </div>
@@ -54,7 +54,6 @@
         </label>
       </div>
 
-      <!-- Preview Section -->
       <div v-if="image || text_file" class="file-preview-section">
         <div v-if="image" class="file-preview">
           <div class="preview-container">
@@ -75,6 +74,21 @@
         </div>
       </div>
 
+      <div class="captcha-section">
+        <img :src="captchaImage" alt="Captcha" class="captcha-image" @click="refreshCaptcha" title="Click to refresh captcha" />
+        <input
+            type="text"
+            v-model="captchaInput"
+            placeholder="Enter captcha"
+            required
+            class="captcha-input"
+        />
+        <button type="button" @click="refreshCaptcha" class="refresh-captcha-button">
+          Refresh Captcha
+        </button>
+        <div v-if="captchaError" class="error">{{ captchaError }}</div>
+      </div>
+
       <button type="submit" class="submit-button">Post Comment</button>
       <div v-if="error" class="error">{{ error }}</div>
     </form>
@@ -82,7 +96,7 @@
 </template>
 
 <script>
-import { send_message } from "@/api";
+import { send_message, fetch_captcha } from "@/api";
 
 export default {
   props: {
@@ -97,9 +111,26 @@ export default {
       text_file: null,
       error: null,
       urlError: null,
+      captchaImage: '',
+      captchaKey: '',
+      captchaInput: '',
+      captchaError: null,
     };
   },
   methods: {
+    async fetchCaptcha() {
+      try {
+        const response = await fetch_captcha();
+        this.captchaImage = `data:image/${response.captcha_format};base64,${response.captcha_image}`;
+        this.captchaKey = response.captcha_key;
+      } catch (err) {
+        console.error('Error fetching captcha:', err);
+        this.error = 'Failed to load captcha. Please try again.';
+      }
+    },
+    refreshCaptcha() {
+      this.fetchCaptcha();
+    },
     onFileChange(field, event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -148,16 +179,16 @@ export default {
           ctx.drawImage(img, 0, 0, width, height);
 
           canvas.toBlob(
-            (blob) => {
-              if (this.imagePreview) {
-                URL.revokeObjectURL(this.imagePreview);
-              }
-              this.image = new File([blob], file.name, { type: file.type });
-              this.imagePreview = URL.createObjectURL(blob);
-              this.error = null;
-            },
-            file.type,
-            0.95
+              (blob) => {
+                if (this.imagePreview) {
+                  URL.revokeObjectURL(this.imagePreview);
+                }
+                this.image = new File([blob], file.name, { type: file.type });
+                this.imagePreview = URL.createObjectURL(blob);
+                this.error = null;
+              },
+              file.type,
+              0.95
           );
         };
       };
@@ -195,21 +226,21 @@ export default {
       this.$nextTick(() => {
         textarea.focus();
         textarea.setSelectionRange(
-          selectionStart + openTag.length + 2,
-          selectionEnd + openTag.length + 2
+            selectionStart + openTag.length + 2,
+            selectionEnd + openTag.length + 2
         );
       });
     },
     validateURL() {
       if (this.homepage_url) {
         const urlPattern = new RegExp(
-          '^(https?:\\/\\/)?' + // Protocol
-          '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|' + // Domain name
-          '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IP (v4) address
-          '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // Port and path
-          '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // Query string
-          '(\\#[-a-zA-Z\\d_]*)?$',
-          'i'
+            '^(https?:\\/\\/)?' + // Protocol
+            '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|' + // Domain name
+            '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IP (v4) address
+            '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // Port and path
+            '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // Query string
+            '(\\#[-a-zA-Z\\d_]*)?$',
+            'i'
         );
         if (!urlPattern.test(this.homepage_url)) {
           this.urlError = 'Please enter a valid URL.';
@@ -220,10 +251,16 @@ export default {
       }
       return true;
     },
-    submitComment() {
-      // Проверка URL
+    async submitComment() {
       if (!this.validateURL()) {
         return;
+      }
+
+      if (!this.captchaInput) {
+        this.captchaError = 'Please enter the captcha.';
+        return;
+      } else {
+        this.captchaError = null;
       }
 
       const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, '').trim();
@@ -252,18 +289,25 @@ export default {
         formData.append('homepage_url', this.homepage_url);
       }
 
-      send_message(formData)
-        .then(() => {
-          this.resetForm();
-        })
-        .catch((error) => {
-          console.error('Error sending message:', error);
+      formData.append('captcha_key', this.captchaKey);
+      formData.append('captcha_input', this.captchaInput);
+
+      try {
+        await send_message(formData);
+        this.resetForm();
+      } catch (error) {
+        console.error('Error sending message:', error);
+        if (error.response && error.response.data && error.response.data.message) {
+          this.error = error.response.data.message;
+        } else {
           this.error = 'Failed to submit comment. Please try again.';
-        });
+        }
+        this.fetchCaptcha();
+      }
     },
     resetForm() {
       this.content = '';
-      this.homepage_url = ''; // Сброс поля URL
+      this.homepage_url = '';
 
       if (this.imagePreview) {
         URL.revokeObjectURL(this.imagePreview);
@@ -273,7 +317,13 @@ export default {
       this.text_file = null;
       this.error = null;
       this.urlError = null;
+      this.captchaInput = '';
+      this.captchaError = null;
+      this.fetchCaptcha();
     },
+  },
+  mounted() {
+    this.fetchCaptcha();
   },
 };
 </script>
@@ -330,7 +380,6 @@ export default {
   outline: none;
 }
 
-/* Поле для ввода URL */
 .homepage-url-input {
   margin-bottom: 1rem;
 }
@@ -446,5 +495,47 @@ export default {
   color: red;
   margin-top: 10px;
   font-size: 0.9rem;
+}
+
+.captcha-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.captcha-image {
+  cursor: pointer;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+}
+
+.captcha-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.captcha-input:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+.refresh-captcha-button {
+  padding: 8px 12px;
+  background-color: #f56c6c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+}
+
+.refresh-captcha-button:hover {
+  background-color: #ff7875;
 }
 </style>

@@ -30,6 +30,11 @@ function refreshToken() {
       });
 }
 
+export const fetch_captcha = () => {
+  return axios.get(`${process.env.VUE_APP_API_URL}captcha`).then(response => response.data);
+};
+
+
 export function connectWebSocket() {
   user = JSON.parse(localStorage.getItem('user'));
   if(!user) {
