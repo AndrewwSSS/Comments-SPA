@@ -149,10 +149,10 @@ MAX_IMAGE_HEIGHT_KB = os.getenv("MAX_IMAGE_HEIGHT_KB", 240)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=float(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
+        minutes=float(os.getenv("ACCESS_TOKEN_LIFETIME", 30))
     ),
     "REFRESH_TOKEN_LIFETIME": timedelta(
-        minutes=float(os.getenv("REFRESH_TOKEN_LIFETIME", 10))
+        minutes=float(os.getenv("REFRESH_TOKEN_LIFETIME", 60 * 24))
     )
 }
 
