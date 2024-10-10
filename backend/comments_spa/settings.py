@@ -113,7 +113,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -122,7 +121,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": os.getenv("COMMENTS_PAGE_SIZE", 25),
 }
 
 
@@ -144,9 +143,9 @@ AUTH_USER_MODEL = "user.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-MAX_FILE_SIZE_KB = 100
-MAX_IMAGE_WIDTH_KB = 320
-MAX_IMAGE_HEIGHT_KB = 240
+MAX_FILE_SIZE_KB = os.getenv("MAX_FILE_SIZE_KB", 100)
+MAX_IMAGE_WIDTH_KB = os.getenv("MAX_IMAGE_WIDTH_KB", 320)
+MAX_IMAGE_HEIGHT_KB = os.getenv("MAX_IMAGE_HEIGHT_KB", 240)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
@@ -170,8 +169,9 @@ CACHES = {
 CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/0"
 CELERY_TIMEZONE = "UTC"
 
-CAPTCHA_TTL = 300
-CAPTCHA_LENGTH = 5
+CAPTCHA_TTL = os.getenv("CAPTCHA_TTL", 300)
+CAPTCHA_LENGTH = os.getenv("CAPTCHA_LENGTH", 5)
 
 CACHE_TTL = os.getenv("CACHE_TTL", 300)
 REPLIES_PAGE_SIZE = os.getenv("REPLIES_PAGE_SIZE", 10)
+
