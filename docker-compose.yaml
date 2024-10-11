@@ -21,6 +21,11 @@
         - db
       env_file:
         - backend/.env
+      command: >
+        sh -c "python manage.py makemigrations &&
+               python manage.py migrate &&
+               python manage.py runserver 0.0.0.0:8000"
+        
 
     backend-ws:
       build:
@@ -34,7 +39,7 @@
         - redis
       env_file:
         - backend/.env
-      command: sh ws-entrypoint.sh
+      command: daphne --verbosity 2 -b 0.0.0.0 -p 8001 comments_spa.asgi:application
 
     redis:
       image: redis:alpine
