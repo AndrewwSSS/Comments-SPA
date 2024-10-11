@@ -70,18 +70,6 @@
         - "8080:8080"
       environment:
         - CHOKIDAR_USEPOLLING=true
-    nginx:
-      build:
-        context: .
-        dockerfile: nginx/Dockerfile
-      volumes:
-        - static_volume:/staticfiles
-      ports:
-        - "80:80"
-      depends_on:
-        - backend
-        - frontend
-        - backend-ws
   volumes:
     db_data:
     static_volume:
