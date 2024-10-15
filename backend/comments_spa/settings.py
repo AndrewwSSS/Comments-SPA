@@ -169,9 +169,9 @@ CACHES = {
 CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/0"
 CELERY_TIMEZONE = "UTC"
 
-CAPTCHA_TTL = os.getenv("CAPTCHA_TTL", 300)
-CAPTCHA_LENGTH = os.getenv("CAPTCHA_LENGTH", 5)
+CAPTCHA_TTL = int(os.getenv("CAPTCHA_TTL", 300))
+CAPTCHA_LENGTH = int(os.getenv("CAPTCHA_LENGTH", 5))
 
-CACHE_TTL = os.getenv("CACHE_TTL", 300)
-REPLIES_PAGE_SIZE = os.getenv("REPLIES_PAGE_SIZE", 10)
+CACHE_TTL = int(os.getenv("CACHE_TTL", 300))
+REPLIES_PAGE_SIZE = int(os.getenv("REPLIES_PAGE_SIZE", 10))
 
