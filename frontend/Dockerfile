@@ -1,11 +1,11 @@
-FROM node:16-alpine as build
+FROM node:16-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm add global @vue/cli
-RUN npm install
+RUN npm add global @vue/cli \
+    && npm install
 
 COPY . .
 
