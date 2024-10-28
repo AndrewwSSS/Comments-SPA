@@ -143,9 +143,9 @@ AUTH_USER_MODEL = "user.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-MAX_FILE_SIZE_KB = os.getenv("MAX_FILE_SIZE_KB", 100)
-MAX_IMAGE_WIDTH_KB = os.getenv("MAX_IMAGE_WIDTH_KB", 320)
-MAX_IMAGE_HEIGHT_KB = os.getenv("MAX_IMAGE_HEIGHT_KB", 240)
+MAX_FILE_SIZE_KB = int(os.getenv("MAX_FILE_SIZE_KB", 100))
+MAX_IMAGE_WIDTH_KB = int(os.getenv("MAX_IMAGE_WIDTH_KB", 320))
+MAX_IMAGE_HEIGHT_KB = int(os.getenv("MAX_IMAGE_HEIGHT_KB", 240))
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
