@@ -8,14 +8,6 @@
         </div>
 
         <div class="comment-actions">
-          <button
-            v-if="comment.homepage_url"
-            @click="handleHomepageClick"
-            class="homepage-button"
-          >
-            <i class="fas fa-external-link-alt"></i> Visit Homepage
-          </button>
-
           <span @click="toggleForm(comment.id)" class="icon" title="Reply">
             <i class="fas fa-reply"></i>
           </span>
@@ -124,11 +116,6 @@ export default {
     ...mapActions('commentForm', ['toggleForm']),
     formatDate(date) {
       return new Date(date).toLocaleString();
-    },
-    handleHomepageClick() {
-      if (this.comment.homepage_url) {
-        window.open(this.comment.homepage_url, '_blank');
-      }
     },
     handleUpdateReplies({ comment, newReplies, nextPageURL }) {
       this.$emit('updateReplies', { comment, newReplies, nextPageURL });
@@ -270,22 +257,6 @@ export default {
   margin: 10px 0;
   color: #606266;
   line-height: 1.6;
-}
-
-.homepage-button {
-  background-color: #409eff;
-  color: white;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-}
-
-.homepage-button:hover {
-  background-color: #66b1ff;
 }
 
 .comment-image {

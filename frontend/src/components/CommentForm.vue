@@ -16,18 +16,6 @@
           ref="commentTextarea"
       ></textarea>
 
-      <div class="homepage-url-input">
-        <label for="homepage_url">Homepage URL:</label>
-        <input
-            type="text"
-            v-model="homepage_url"
-            id="homepage_url"
-            class="url-input"
-            placeholder="https://example.com(optional)"
-        />
-        <div v-if="urlError" class="error">{{ urlError }}</div>
-      </div>
-
       <div class="file-inputs">
         <label class="file-label">
           <input
@@ -80,43 +68,41 @@
 </template>
 
 <script>
+import {ref, nextTick} from 'vue';
 import { send_message } from "@/api";
 
 export default {
   props: {
     parentMessageId: Number,
   },
-  data() {
-    return {
-      content: '',
-      homepage_url: '',
-      image: null,
-      imagePreview: null,
-      text_file: null,
-      error: null,
-      urlError: null,
-    };
-  },
-  methods: {
-    onFileChange(field, event) {
+  setup(props) {
+    const content = ref('');
+    const image = ref(null);
+    const imagePreview = ref(null);
+    const text_file = ref(null);
+    const error = ref(null);
+    const commentTextarea = ref(null);
+
+    const onFileChange = (field, event) => {
       const file = event.target.files[0];
       if (!file) return;
 
       if (field === 'image') {
-        this.handleImage(file);
+        handleImage(file);
       } else if (field === 'text_file') {
-        this.handleTextFile(file);
+        handleTextFile(file);
       }
 
       event.target.value = '';
-    },
-    handleImage(file) {
+    };
+
+    const handleImage = (file) => {
       const fileTypes = ['image/jpeg', 'image/png', 'image/gif'];
       const maxWidth = 320;
       const maxHeight = 240;
 
       if (!fileTypes.includes(file.type)) {
-        this.error = 'Invalid image format. Please upload a JPG, PNG, or GIF file.';
+        error.value = 'Invalid image format. Please upload a JPG, PNG, or GIF file.';
         return;
       }
 
@@ -147,12 +133,12 @@ export default {
 
           canvas.toBlob(
               (blob) => {
-                if (this.imagePreview) {
-                  URL.revokeObjectURL(this.imagePreview);
+                if (imagePreview.value) {
+                  URL.revokeObjectURL(imagePreview.value);
                 }
-                this.image = new File([blob], file.name, { type: file.type });
-                this.imagePreview = URL.createObjectURL(blob);
-                this.error = null;
+                image.value = new File([blob], file.name, { type: file.type });
+                imagePreview.value = URL.createObjectURL(blob);
+                error.value = null;
               },
               file.type,
               0.95
@@ -161,121 +147,107 @@ export default {
       };
 
       reader.readAsDataURL(file);
-    },
-    handleTextFile(file) {
+    };
+
+    const handleTextFile = (file) => {
       if (file.size > 100 * 1024) {
-        this.error = 'Text file size must not exceed 100 KB.';
+        error.value = 'Text file size must not exceed 100 KB.';
         return;
       }
-      this.text_file = file;
-      this.error = null;
-    },
-    removeFile(field) {
+      text_file.value = file;
+      error.value = null;
+    };
+
+    const removeFile = (field) => {
       if (field === 'image') {
-        if (this.imagePreview) {
-          URL.revokeObjectURL(this.imagePreview);
+        if (imagePreview.value) {
+          URL.revokeObjectURL(imagePreview.value);
         }
-        this.image = null;
-        this.imagePreview = null;
+        image.value = null;
+        imagePreview.value = null;
       } else if (field === 'text_file') {
-        this.text_file = null;
+        text_file.value = null;
       }
-    },
-    insertTag(openTag, closeTag) {
-      const textarea = this.$refs.commentTextarea;
+    };
+
+    const insertTag = (openTag, closeTag) => {
+      const textarea = commentTextarea.value;
       const { selectionStart, selectionEnd } = textarea;
-      const beforeText = this.content.substring(0, selectionStart);
-      const afterText = this.content.substring(selectionEnd);
-      const selectedText = this.content.substring(selectionStart, selectionEnd);
+      const beforeText = content.value.substring(0, selectionStart);
+      const afterText = content.value.substring(selectionEnd);
+      const selectedText = content.value.substring(selectionStart, selectionEnd);
 
-      this.content = `${beforeText}<${openTag}>${selectedText}${closeTag}${afterText}`;
+      content.value = `${beforeText}<${openTag}>${selectedText}${closeTag}${afterText}`;
 
-      this.$nextTick(() => {
+      nextTick(() => {
         textarea.focus();
         textarea.setSelectionRange(
             selectionStart + openTag.length + 2,
             selectionEnd + openTag.length + 2
         );
       });
-    },
-    validateURL() {
-      if (this.homepage_url) {
-        const urlPattern = new RegExp(
-            '^(https?:\\/\\/)?' + // Protocol
-            '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|' + // Domain name
-            '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IP (v4) address
-            '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // Port and path
-            '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // Query string
-            '(\\#[-a-zA-Z\\d_]*)?$',
-            'i'
-        );
-        if (!urlPattern.test(this.homepage_url)) {
-          this.urlError = 'Please enter a valid URL.';
-          return false;
-        } else {
-          this.urlError = null;
-        }
-      }
-      return true;
-    },
-    async submitComment() {
-      if (!this.validateURL()) {
-        return;
-      }
+    };
 
+    const submitComment = async () => {
+      const strippedContent = content.value.replace(/<\/?[^>]+(>|$)/g, '').trim();
 
-
-      const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, '').trim();
-
-      if (!strippedContent && !this.image && !this.text_file) {
-        this.error = 'Comment cannot be empty!';
+      if (!strippedContent && !image.value && !text_file.value) {
+        error.value = 'Comment cannot be empty!';
         return;
       }
 
       const formData = new FormData();
-      formData.append('content', this.content);
+      formData.append('content', content.value);
 
-      if (this.image) {
-        formData.append('image', this.image);
+      if (image.value) {
+        formData.append('image', image.value);
       }
 
-      if (this.text_file) {
-        formData.append('text_file', this.text_file);
+      if (text_file.value) {
+        formData.append('text_file', text_file.value);
       }
 
-      if (this.parentMessageId) {
-        formData.append('parent_message', this.parentMessageId);
-      }
-
-      if (this.homepage_url) {
-        formData.append('homepage_url', this.homepage_url);
+      if (props.parentMessageId) {
+        formData.append('parent_message', props.parentMessageId);
       }
 
       try {
         await send_message(formData);
-        this.resetForm();
+        resetForm();
       } catch (error) {
         console.error('Error sending message:', error);
         if (error.response && error.response.data && error.response.data.message) {
-          this.error = error.response.data.message;
+          error.value = error.response.data.message;
         } else {
-          this.error = 'Failed to submit comment. Please try again.';
+          error.value = 'Failed to submit comment. Please try again.';
         }
       }
-    },
-    resetForm() {
-      this.content = '';
-      this.homepage_url = '';
+    };
 
-      if (this.imagePreview) {
-        URL.revokeObjectURL(this.imagePreview);
+    const resetForm = () => {
+      content.value = '';
+
+      if (imagePreview.value) {
+        URL.revokeObjectURL(imagePreview.value);
       }
-      this.image = null;
-      this.imagePreview = null;
-      this.text_file = null;
-      this.error = null;
-      this.urlError = null;
-    },
+      image.value = null;
+      imagePreview.value = null;
+      text_file.value = null;
+      error.value = null;
+    };
+
+    return {
+      content,
+      image,
+      imagePreview,
+      text_file,
+      error,
+      commentTextarea,
+      onFileChange,
+      insertTag,
+      submitComment,
+      removeFile,
+    };
   },
 };
 </script>
@@ -328,24 +300,6 @@ export default {
 }
 
 .comment-textarea:focus {
-  border-color: #409eff;
-  outline: none;
-}
-
-.homepage-url-input {
-  margin-bottom: 1rem;
-}
-
-.url-input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #dcdfe6;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.url-input:focus {
   border-color: #409eff;
   outline: none;
 }

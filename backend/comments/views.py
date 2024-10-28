@@ -7,7 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from channels.layers import get_channel_layer
-from django.core.cache import cache
 from django.conf import settings
 
 from comments.models import Comment

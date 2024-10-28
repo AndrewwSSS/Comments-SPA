@@ -34,8 +34,6 @@ class Comment(models.Model):
     content = models.TextField()
     image = models.ImageField(upload_to=unique_file_path, blank=True, null=True)
     text_file = models.FileField(upload_to=unique_file_path, blank=True, null=True)
-    homepage_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]
-    
