@@ -39,7 +39,7 @@ axios.interceptors.response.use(
     let refresh_token = user.refresh;
     try {
       const response = await axios.post(
-        `${process.env.VUE_APP_API_URL}/api/users/token/refresh/`,
+        `${process.env.VUE_APP_API_URL}users/token/refresh/`,
         { refresh: refresh_token }
       );
 
