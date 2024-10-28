@@ -73,22 +73,6 @@
           </div>
         </div>
       </div>
-
-      <div class="captcha-section">
-        <img :src="captchaImage" alt="Captcha" class="captcha-image" @click="refreshCaptcha" title="Click to refresh captcha" />
-        <input
-            type="text"
-            v-model="captchaInput"
-            placeholder="Enter captcha"
-            required
-            class="captcha-input"
-        />
-        <button type="button" @click="refreshCaptcha" class="refresh-captcha-button">
-          Refresh Captcha
-        </button>
-        <div v-if="captchaError" class="error">{{ captchaError }}</div>
-      </div>
-
       <button type="submit" class="submit-button">Post Comment</button>
       <div v-if="error" class="error">{{ error }}</div>
     </form>
@@ -96,7 +80,7 @@
 </template>
 
 <script>
-import { send_message, fetch_captcha } from "@/api";
+import { send_message } from "@/api";
 
 export default {
   props: {
@@ -111,26 +95,9 @@ export default {
       text_file: null,
       error: null,
       urlError: null,
-      captchaImage: '',
-      captchaKey: '',
-      captchaInput: '',
-      captchaError: null,
     };
   },
   methods: {
-    async fetchCaptcha() {
-      try {
-        const response = await fetch_captcha();
-        this.captchaImage = `data:image/${response.captcha_format};base64,${response.captcha_image}`;
-        this.captchaKey = response.captcha_key;
-      } catch (err) {
-        console.error('Error fetching captcha:', err);
-        this.error = 'Failed to load captcha. Please try again.';
-      }
-    },
-    refreshCaptcha() {
-      this.fetchCaptcha();
-    },
     onFileChange(field, event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -256,12 +223,7 @@ export default {
         return;
       }
 
-      if (!this.captchaInput) {
-        this.captchaError = 'Please enter the captcha.';
-        return;
-      } else {
-        this.captchaError = null;
-      }
+
 
       const strippedContent = this.content.replace(/<\/?[^>]+(>|$)/g, '').trim();
 
@@ -289,9 +251,6 @@ export default {
         formData.append('homepage_url', this.homepage_url);
       }
 
-      formData.append('captcha_key', this.captchaKey);
-      formData.append('captcha_input', this.captchaInput);
-
       try {
         await send_message(formData);
         this.resetForm();
@@ -302,7 +261,6 @@ export default {
         } else {
           this.error = 'Failed to submit comment. Please try again.';
         }
-        this.fetchCaptcha();
       }
     },
     resetForm() {
@@ -317,13 +275,7 @@ export default {
       this.text_file = null;
       this.error = null;
       this.urlError = null;
-      this.captchaInput = '';
-      this.captchaError = null;
-      this.fetchCaptcha();
     },
-  },
-  mounted() {
-    this.fetchCaptcha();
   },
 };
 </script>

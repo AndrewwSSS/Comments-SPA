@@ -48,31 +48,6 @@ class CommentViewSet(
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        captcha_key = request.data.get("captcha_key")
-        captcha_input = request.data.get("captcha_input", "")
-
-        if not captcha_key:
-            return Response(
-                {"message": "Captcha key not provided."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        captcha_text = cache.get(captcha_key)
-
-        if not captcha_text:
-            return Response(
-                {"message": "Captcha has expired or not found."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if captcha_text.lower() != captcha_input.lower():
-            return Response(
-                {"message": "Invalid captcha input."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        cache.delete(captcha_key)
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

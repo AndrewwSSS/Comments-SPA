@@ -4,7 +4,6 @@ from io import BytesIO
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import serializers
-from rest_framework_recursive.fields import RecursiveField
 from PIL import Image
 
 from comments.models import Comment
