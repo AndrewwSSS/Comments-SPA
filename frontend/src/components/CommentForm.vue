@@ -98,8 +98,8 @@ export default {
 
     const handleImage = (file) => {
       const fileTypes = ['image/jpeg', 'image/png', 'image/gif'];
-      const maxWidth = 320;
-      const maxHeight = 240;
+      const maxWidth = 1920;
+      const maxHeight = 1080;
 
       if (!fileTypes.includes(file.type)) {
         error.value = 'Invalid image format. Please upload a JPG, PNG, or GIF file.';
