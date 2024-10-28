@@ -6,7 +6,6 @@
           <strong class="comment-username">{{ comment.user || 'Anonymous' }}</strong>
           <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         </div>
-
         <div class="comment-actions">
           <span @click="toggleForm(comment.id)" class="icon" title="Reply">
             <i class="fas fa-reply"></i>
@@ -18,10 +17,10 @@
 
       <div v-if="comment.image" class="image-container">
         <img
-          :src="comment.image"
-          alt="comment image"
-          class="comment-image"
-          @click="showPreview"
+            :src="comment.image"
+            alt="comment image"
+            class="comment-image"
+            @click="showPreview"
         />
       </div>
 
@@ -33,34 +32,34 @@
 
       <div v-if="comment.text_file" class="file-container">
         <a
-          href="#"
-          class="download-button"
-          @click.prevent="downloadFile(comment.text_file)"
+            href="#"
+            class="download-button"
+            @click.prevent="downloadFile(comment.text_file)"
         >
           <i class="fas fa-file-download"></i> Download {{ getFileName(comment.text_file) }}
         </a>
       </div>
 
       <button
-        v-if="comment.replies_count"
-        @click="toggleReplies"
-        class="load-replies-button"
+          v-if="comment.replies_count"
+          @click="toggleReplies"
+          class="load-replies-button"
       >
         <i class="fas fa-comments"></i> {{ showReplies ? 'Hide Replies' : 'View Replies' }} ({{ comment.replies_count }})
       </button>
 
       <div v-if="showReplies" class="comment-replies">
         <CommentItem
-          v-for="reply in comment.replies"
-          :key="reply.id"
-          :comment="reply"
-          :isReply="true"
-          @updateReplies="handleUpdateReplies"
+            v-for="reply in comment.replies"
+            :key="reply.id"
+            :comment="reply"
+            :isReply="true"
+            @updateReplies="handleUpdateReplies"
         />
         <button
-          v-if="nextPageNumber"
-          @click="loadReplies"
-          class="load-more-button"
+            v-if="nextPageNumber"
+            @click="loadReplies"
+            class="load-more-button"
         >
           <i class="fas fa-chevron-down"></i> Load More Replies
         </button>
@@ -77,7 +76,8 @@
 import CommentItem from './CommentItem.vue';
 import CommentForm from "@/components/CommentForm.vue";
 import { get_replies } from "@/api";
-import { mapGetters, mapActions } from 'vuex';
+import { useStore } from 'vuex';
+import { computed, ref } from 'vue';
 
 export default {
   components: { CommentForm, CommentItem },
@@ -88,99 +88,107 @@ export default {
       default: false,
     },
   },
-  data() {
-    return {
-      repliesLoaded: false,
-      nextPageURL: null,
-      previewVisible: false,
-      showReplies: false,
-    };
-  },
-  computed: {
-    ...mapGetters('commentForm', ['visibleForm']),
-    formattedContent() {
-      return this.comment.content.replace(/\n/g, '<br>');
-    },
-    nextPageNumber() {
-      if (!this.nextPageURL) return null;
+  setup(props) {
+    const store = useStore();
+    const repliesLoaded = ref(false);
+    const nextPageURL = ref(null);
+    const previewVisible = ref(false);
+    const showReplies = ref(false);
 
-      const url = new URL(this.nextPageURL);
-      const params = new URLSearchParams(url.search);
-      return Number(params.get("page"));
-    },
-    isReplyFormVisible() {
-      return this.visibleForm === this.comment.id;
-    },
-  },
-  methods: {
-    ...mapActions('commentForm', ['toggleForm']),
-    formatDate(date) {
+    const formattedContent = computed(() => props.comment.content.replace(/\n/g, '<br>'));
+    const nextPageNumber = computed(() => nextPageURL.value ? Number(new URLSearchParams(new URL(nextPageURL.value).search).get("page")) : null);
+    const isReplyFormVisible = computed(() => store.getters['commentForm/visibleForm'] === props.comment.id);
+
+    function formatDate(date) {
       return new Date(date).toLocaleString();
-    },
-    handleUpdateReplies({ comment, newReplies, nextPageURL }) {
-      this.$emit('updateReplies', { comment, newReplies, nextPageURL });
-    },
-    loadReplies() {
-      const page = this.nextPageNumber || 1;
-      get_replies(this.comment.id, page)
-        .then((response) => {
-          if (response.status === 200) {
-            const data = response.data;
-            const newReplies = data.results.map((reply) => ({
-              ...reply,
-              replies: [],
-            }));
-            this.$emit('updateReplies', {
-              comment: this.comment,
-              newReplies,
-              nextPageURL: data.next,
-            });
+    }
 
-            this.nextPageURL = data.next;
-            this.repliesLoaded = true;
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching replies:', error);
-        });
-    },
-    showPreview() {
-      this.previewVisible = true;
-    },
-    hidePreview() {
-      this.previewVisible = false;
-    },
-    toggleReplies() {
-      if (!this.repliesLoaded && !this.showReplies) {
-        this.loadReplies();
+    function handleUpdateReplies({ comment, newReplies, nextPageURL }) {
+      props.$emit('updateReplies', { comment, newReplies, nextPageURL });
+    }
+
+    function toggleForm(id) {
+      store.dispatch('commentForm/toggleForm', id);
+    }
+
+    function loadReplies() {
+      const page = nextPageNumber.value || 1;
+      get_replies(props.comment.id, page)
+          .then((response) => {
+            if (response.status === 200) {
+              const data = response.data;
+              const newReplies = data.results.map((reply) => ({
+                ...reply,
+                replies: [],
+              }));
+              props.$emit('updateReplies', {
+                comment: props.comment,
+                newReplies,
+                nextPageURL: data.next,
+              });
+              nextPageURL.value = data.next;
+              repliesLoaded.value = true;
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching replies:', error);
+          });
+    }
+
+    function showPreview() {
+      previewVisible.value = true;
+    }
+
+    function hidePreview() {
+      previewVisible.value = false;
+    }
+
+    function toggleReplies() {
+      if (!repliesLoaded.value && !showReplies.value) {
+        loadReplies();
       }
-      this.showReplies = !this.showReplies;
-    },
-    async downloadFile(fileUrl) {
+      showReplies.value = !showReplies.value;
+    }
+
+    async function downloadFile(fileUrl) {
       try {
         const response = await fetch(fileUrl);
-        if (!response.ok) {
-          throw new Error('Failed to download file.');
-        }
+        if (!response.ok) throw new Error('Failed to download file.');
 
         const blob = await response.blob();
         const link = document.createElement('a');
-        const objectURL = URL.createObjectURL(blob);
-
-        link.href = objectURL;
-        link.download = this.getFileName(fileUrl);
+        link.href = URL.createObjectURL(blob);
+        link.download = getFileName(fileUrl);
         document.body.appendChild(link);
         link.click();
-        URL.revokeObjectURL(objectURL);
+        URL.revokeObjectURL(link.href);
         document.body.removeChild(link);
       } catch (error) {
         console.error('Download error:', error);
       }
-    },
-    getFileName(fileUrl) {
+    }
+
+    function getFileName(fileUrl) {
       return fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
-    },
-  },
+    }
+
+    return {
+      formattedContent,
+      nextPageNumber,
+      isReplyFormVisible,
+      formatDate,
+      handleUpdateReplies,
+      toggleForm,
+      loadReplies,
+      showPreview,
+      hidePreview,
+      toggleReplies,
+      downloadFile,
+      getFileName,
+      previewVisible,
+      showReplies
+    };
+  }
 };
 </script>
 
@@ -197,21 +205,6 @@ export default {
 .reply-item {
   margin-left: 50px;
   border-left: 2px solid #ebeef5;
-}
-
-.comment-avatar {
-  margin-right: 15px;
-}
-
-.comment-avatar img {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.comment-body {
-  flex: 1;
 }
 
 .comment-header {
@@ -239,7 +232,6 @@ export default {
 .comment-actions {
   display: flex;
   gap: 10px;
-  align-items: center;
 }
 
 .icon {
@@ -276,53 +268,31 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: rgba(0, 0, 0, 0.8);
   z-index: 1000;
 }
 
 .image-modal-content {
-  position: relative;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 90%;
+  max-height: 90%;
 }
 
 .image-modal-content img {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.comment-file-link {
-  display: inline-block;
-  margin-top: 10px;
-  color: #409eff;
-  text-decoration: none;
-  font-size: 0.95rem;
-}
-
-.comment-file-link:hover {
-  text-decoration: underline;
-}
-
-.file-container {
-  margin-top: 10px;
-}
-
+/* Other styles for download button and replies */
 .download-button {
-  display: inline-block;
   padding: 5px 10px;
   background-color: #409eff;
   color: white;
   border-radius: 5px;
-  text-decoration: none;
-}
-
-.download-button:hover {
-  background-color: #66b1ff;
 }
 
 .load-replies-button,
@@ -331,25 +301,10 @@ export default {
   padding: 8px 15px;
   background-color: #ecf5ff;
   color: #409eff;
-  border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.load-replies-button:hover,
-.load-more-button:hover {
-  background-color: #d9ecff;
-}
-
-.comment-replies {
-  margin-top: 1rem;
-}
-
-.reply-form {
-  margin-top: 20px;
 }
 </style>
