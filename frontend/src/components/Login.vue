@@ -37,10 +37,11 @@ export default {
     handleLogin() {
       this.login({ username: this.username, password: this.password })
         .then(() => {
-          this.$router.push('/profile');
+          this.$router.push('/comments');
         })
         .catch(() => {
           this.error = 'Invalid username or password.';
+          this.password = ''
         });
     },
   },
