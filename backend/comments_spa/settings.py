@@ -69,10 +69,18 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "comments_spa.urls"
 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = os.getenv("EMAIL_PORT", "587")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "<EMAIL>")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "<PASSWORD>")
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
