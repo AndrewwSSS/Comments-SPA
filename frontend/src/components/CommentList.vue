@@ -40,127 +40,129 @@
 </template>
 
 <script>
+import { ref, computed, onMounted } from "vue";
 import CommentItem from './CommentItem.vue';
 import CommentForm from './CommentForm.vue';
-import {
-  get_comments,
-  subscribe_to_new_messages,
-  connectWebSocket
-} from "@/api";
+import { get_comments, subscribe_to_new_messages, connectWebSocket } from "@/api";
 
 export default {
   components: { CommentItem, CommentForm },
-  data() {
-    return {
-      comments: [],
-      isLoading: false,
-      nextPageURL: null,
-      sortBy: 'created_at',
-      sortOrder: 'desk',
-    };
-  },
-  computed: {
-    sortedComments() {
-      return [...this.comments].sort((a, b) => {
+  setup() {
+    const comments = ref([]);
+    const isLoading = ref(false);
+    const nextPageURL = ref(null);
+    const sortBy = ref("created_at");
+    const sortOrder = ref("desc");
+
+    const sortedComments = computed(() => {
+      return [...comments.value].sort((a, b) => {
         let compare = 0;
-        if (this.sortBy === 'created_at') {
+        if (sortBy.value === "created_at") {
           compare = new Date(a.created_at) - new Date(b.created_at);
-        } else if (this.sortBy === 'user') {
+        } else if (sortBy.value === "user") {
           compare = a.user.localeCompare(b.user);
         }
-
-        return this.sortOrder === 'asc' ? compare : -compare;
+        return sortOrder.value === "asc" ? compare : -compare;
       });
-    },
-    nextPageNumber() {
-      if (!this.nextPageURL)
-        return null;
+    });
 
-      const url = new URL(this.nextPageURL);
+    const nextPageNumber = computed(() => {
+      if (!nextPageURL.value) return null;
+      const url = new URL(nextPageURL.value);
       const params = new URLSearchParams(url.search);
       return Number(params.get("page"));
-    },
-  },
-  methods: {
-    updateCommentReplies({ comment, newReplies, nextPageURL }) {
-      console.log("updateCommentReplies", comment, newReplies, nextPageURL);
-      const parentComment = comment;
+    });
 
+    const updateCommentReplies = ({ comment, newReplies, nextPageURL: newNextPageURL }) => {
+      const parentComment = comment;
       if (parentComment) {
         if (!parentComment.replies) {
           parentComment.replies = [];
         }
-
-        const existingIds = new Set(parentComment.replies.map(comment => comment.id));
-        const uniqueNewComments = newReplies.filter(comment => !existingIds.has(comment.id));
-
+        const existingIds = new Set(parentComment.replies.map((reply) => reply.id));
+        const uniqueNewComments = newReplies.filter((reply) => !existingIds.has(reply.id));
         parentComment.replies = [...parentComment.replies, ...uniqueNewComments];
-        parentComment.nextPageURL = nextPageURL;
+        parentComment.nextPageURL = newNextPageURL;
       }
-    },
-    add_comment(newComment) {
-      console.log("New comment: ", newComment);
+    };
+
+    const add_comment = (newComment) => {
       if (newComment.parent_message === null || newComment.parent_message === undefined) {
-        console.log('New comment added to root');
-        this.comments.unshift(newComment);
+        comments.value.unshift(newComment);
       } else {
-        const parentComment = this.findCommentById(this.comments, newComment.parent_message);
-        console.log("Parent element: ", parentComment);
-        if (!parentComment.replies) {
-          parentComment.replies = []
-        }
+        const parentComment = findCommentById(comments.value, newComment.parent_message);
         if (parentComment) {
-          parentComment.replies = [...parentComment.replies, newComment];
+          if (!parentComment.replies) {
+            parentComment.replies = [];
+          }
+          parentComment.replies.push(newComment);
           parentComment.replies_count = parentComment.replies.length;
-          console.log("parent after adding comment: ", parentComment);
         }
       }
-    },
-    findCommentById(commentsArray, id) {
+    };
+
+    const findCommentById = (commentsArray, id) => {
       for (let comment of commentsArray) {
         if (comment.id === id) {
           return comment;
         } else if (comment.replies && comment.replies.length > 0) {
-          const result = this.findCommentById(comment.replies, id);
-          if (result) {
-            return result;
-          }
+          const result = findCommentById(comment.replies, id);
+          if (result) return result;
         }
       }
       return null;
-    },
-    update_comments(data) {
-      console.log("update_comments", data)
+    };
+
+    const update_comments = (data) => {
       const newComments = data.results;
+      const existingIds = new Set(comments.value.map((comment) => comment.id));
+      const uniqueNewComments = newComments.filter((comment) => !existingIds.has(comment.id));
+      comments.value = [...comments.value, ...uniqueNewComments];
+      nextPageURL.value = data.next;
+      isLoading.value = false;
+    };
 
-      const existingIds = new Set(this.comments.map(comment => comment.id));
-      const uniqueNewComments = newComments.filter(comment => !existingIds.has(comment.id));
+    const fetchComments = (page = 1) => {
+      isLoading.value = true;
+      get_comments(page, update_comments);
+    };
 
-      this.comments = [...this.comments, ...uniqueNewComments];
-
-      this.nextPageURL = data.next;
-      this.isLoading = false;
-    },
-    fetchComments(page = 1) {
-      this.isLoading = true;
-      get_comments(page, this.update_comments);
-    },
-    loadMoreComments() {
-      if (this.nextPageNumber) {
-        this.fetchComments(this.nextPageNumber);
+    const loadMoreComments = () => {
+      if (nextPageNumber.value) {
+        fetchComments(nextPageNumber.value);
       }
-    },
-    toggleSortOrder() {
-      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    }
-  },
-  mounted() {
-    connectWebSocket();
-    this.fetchComments();
-    subscribe_to_new_messages(this.add_comment);
+    };
+
+    const toggleSortOrder = () => {
+      sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+    };
+
+    onMounted(() => {
+      connectWebSocket();
+      fetchComments();
+      subscribe_to_new_messages(add_comment);
+    });
+
+    return {
+      comments,
+      isLoading,
+      sortedComments,
+      nextPageNumber,
+      sortBy,
+      sortOrder,
+      nextPageURL,
+      updateCommentReplies,
+      add_comment,
+      findCommentById,
+      update_comments,
+      fetchComments,
+      loadMoreComments,
+      toggleSortOrder,
+    };
   },
 };
 </script>
+
 
 <style scoped>
 .comments-section {
@@ -261,7 +263,6 @@ h3 {
   background-color: #66b1ff;
 }
 
-/* Custom Arrow for the Select Dropdown */
 .sorting-controls select::after {
   content: '▼';
   position: absolute;

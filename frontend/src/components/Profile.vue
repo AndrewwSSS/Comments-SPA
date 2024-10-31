@@ -5,12 +5,18 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
 export default {
   name: 'UserProfile',
-  computed: {
-    user() {
-      return this.$store.state.auth.user;
-    },
+  setup() {
+    const store = useStore();
+    const user = computed(() => store.state.auth.user);
+
+    return {
+      user,
+    };
   },
 };
 </script>

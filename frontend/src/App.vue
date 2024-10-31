@@ -5,11 +5,11 @@
         <!-- Left side: Home link -->
         <div class="nav-group-left">
           <router-link to="/" class="nav-link">Home</router-link>
-          <router-link v-if="isLoggedIn" to="/profile" class="nav-link">Profile</router-link>
           <router-link v-if="isLoggedIn" to="/comments" class="nav-link">Comments</router-link>
         </div>
         <!-- Right side: Login, Register, and Logout -->
         <div class="nav-group-right">
+          <router-link v-if="isLoggedIn" to="/profile" class="nav-link">Profile</router-link>
           <router-link v-if="!isLoggedIn" to="/login" class="nav-link">Login</router-link>
           <router-link to="/register" class="nav-link">Register</router-link>
           <button v-if="isLoggedIn" @click="logout" class="logout-button">Logout</button>
@@ -28,26 +28,33 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'App',
-  computed: {
-    user() {
-        return this.$store.state.auth.user;
-    },
-    ...mapState('auth', {
-      isLoggedIn: state => state.status.loggedIn,
-    }),
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const user = computed(() => store.state.auth.user);
+    const isLoggedIn = computed(() => store.state.auth.status.loggedIn);
+
+    const logout = () => {
+      store.dispatch('auth/logout');
+      router.push('/login');
+    };
+
+    return {
+      user,
+      isLoggedIn,
+      logout,
+    };
   },
-  methods: {
-    logout() {
-      this.$store.dispatch('auth/logout');
-      this.$router.push('/login');
-    },
-  }
 };
 </script>
+
 
 <style src="@/assets/global.css"></style>
 

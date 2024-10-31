@@ -88,7 +88,8 @@ export default {
       default: false,
     },
   },
-  setup(props) {
+  emits: ['updateReplies'],
+  setup(props, { emit }) {
     const store = useStore();
     const repliesLoaded = ref(false);
     const nextPageURL = ref(null);
@@ -104,7 +105,7 @@ export default {
     }
 
     function handleUpdateReplies({ comment, newReplies, nextPageURL }) {
-      props.$emit('updateReplies', { comment, newReplies, nextPageURL });
+      emit('updateReplies', { comment, newReplies, nextPageURL });
     }
 
     function toggleForm(id) {
@@ -121,7 +122,7 @@ export default {
                 ...reply,
                 replies: [],
               }));
-              props.$emit('updateReplies', {
+              emit('updateReplies', {
                 comment: props.comment,
                 newReplies,
                 nextPageURL: data.next,

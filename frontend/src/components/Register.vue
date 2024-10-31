@@ -24,32 +24,43 @@
 
 
 <script>
-import { mapActions } from 'vuex';
+import {useStore} from 'vuex';
+import {useRouter} from "vue-router";
+import {ref} from "vue";
 
 export default {
   name: 'UserRegister',
-  data() {
-    return {
-      username: '',
-      email: '',
-      password: '',
-      error: null,
-    };
-  },
-  methods: {
-    ...mapActions({
-      register: 'auth/register',
-    }),
-    handleRegister() {
-      this.register({ username: this.username, email: this.email, password: this.password })
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const username = ref('');
+    const email = ref('');
+    const password = ref('');
+    const error = ref(null);
+
+    const handleRegister = () => {
+        store.dispatch("auth/register", {
+            username: username.value,
+            email: email.value,
+            password: password.value
+        })
         .then(() => {
-          this.$router.push('/login');
+          router.push('/login');
         })
         .catch((err) => {
           console.log(err);
-          this.error = err.response.data;
+          error.value = err.response.data;
         });
-    },
+    }
+
+    return {
+      username,
+      password,
+      email,
+      error,
+      handleRegister,
+    };
   },
 };
 </script>

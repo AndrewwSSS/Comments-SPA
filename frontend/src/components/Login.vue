@@ -19,31 +19,37 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'UserLogin',
-  data() {
-    return {
-      username: '',
-      password: '',
-      error: null,
-    };
-  },
-  methods: {
-    ...mapActions({
-      login: 'auth/login',
-    }),
-    handleLogin() {
-      this.login({ username: this.username, password: this.password })
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const username = ref('');
+    const password = ref('');
+    const error = ref(null);
+
+    const handleLogin = () => {
+      store.dispatch('auth/login', { username: username.value, password: password.value })
         .then(() => {
-          this.$router.push('/comments');
+          router.push('/comments');
         })
         .catch(() => {
-          this.error = 'Invalid username or password.';
-          this.password = ''
+          error.value = 'Invalid username or password.';
+          password.value = '';
         });
-    },
+    };
+
+    return {
+      username,
+      password,
+      error,
+      handleLogin,
+    };
   },
 };
 </script>
