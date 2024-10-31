@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <p class="comment-text" v-html="formattedContent"></p>
+      <p class="comment-text" v-html="sanitizedContent"></p>
 
       <div v-if="comment.image" class="image-container">
         <img
@@ -78,6 +78,7 @@ import CommentForm from "@/components/CommentForm.vue";
 import { get_replies } from "@/api";
 import { useStore } from 'vuex';
 import { computed, ref } from 'vue';
+import DOMPurify from 'dompurify';
 
 export default {
   components: { CommentForm, CommentItem },
@@ -96,7 +97,9 @@ export default {
     const previewVisible = ref(false);
     const showReplies = ref(false);
 
+
     const formattedContent = computed(() => props.comment.content.replace(/\n/g, '<br>'));
+    const sanitizedContent = computed(() => DOMPurify.sanitize(formattedContent.value));
     const nextPageNumber = computed(() => nextPageURL.value ? Number(new URLSearchParams(new URL(nextPageURL.value).search).get("page")) : null);
     const isReplyFormVisible = computed(() => store.getters['commentForm/visibleForm'] === props.comment.id);
 
@@ -175,6 +178,7 @@ export default {
 
     return {
       formattedContent,
+      sanitizedContent,
       nextPageNumber,
       isReplyFormVisible,
       formatDate,

@@ -11,6 +11,7 @@
     "@vue/cli-service": "~5.0.0",
     "axios": "^1.7.7",
     "core-js": "^3.8.3",
+    "dompurify": "^3.1.7",
     "vue": "^3.2.13",
     "vue-router": "^4.4.5",
     "vuex": "^4.1.0"
