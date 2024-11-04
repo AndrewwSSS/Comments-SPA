@@ -14,13 +14,14 @@
       </button>
     </div>
 
-    <CommentForm :parentMessageId="null" />
+
 
     <div v-if="comments.length === 0 && !isLoading" class="no-comments">
       <p>No comments yet. Be the first to comment!</p>
     </div>
 
     <div v-else class="comment-list">
+      <CommentForm :parentMessageId="null" />
       <CommentItem
           v-for="comment in sortedComments"
           :key="comment.id"
@@ -165,10 +166,30 @@ export default {
 
 
 <style scoped>
+
+.comment-list {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.comment-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.comment-list::-webkit-scrollbar-thumb {
+  background-color: #409eff;
+  border-radius: 4px;
+}
+
+.comment-list::-webkit-scrollbar-track {
+  background-color: #f5f5f5; /* Background of the scrollbar track */
+}
+
 .comments-section {
-  max-width: 700px;
   margin: 40px auto;
   padding: 0 15px;
+  width: 50%;
 }
 
 h3 {

@@ -64,6 +64,7 @@ export default {
   display: flex;
   flex-direction: column;
   font-family: 'Roboto', sans-serif;
+  max-height: 100vh;
 }
 
 header {
