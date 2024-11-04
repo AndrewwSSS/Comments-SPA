@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["AndrewwSS <clash2clans1one@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -21,6 +22,8 @@ djangochannelsrestframework = "^1.2.0"
 channels-redis = "^4.2.0"
 daphne = "^4.1.2"
 django-debug-toolbar = "^4.4.6"
+django-storages = "^1.14.4"
+boto3 = "^1.35.52"
 
 
 [build-system]
