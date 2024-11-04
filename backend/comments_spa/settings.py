@@ -2,7 +2,12 @@ import os
 import socket
 from datetime import timedelta
 from pathlib import Path
+
+import boto3
 from dotenv import load_dotenv
+import logging
+
+boto3.set_stream_logger('boto3.resources', logging.DEBUG)
 
 load_dotenv()
 INTERNAL_IPS = ['127.0.0.1', ]
@@ -31,7 +36,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "user",
     "comments",
-    "captcha"
+    "captcha",
+    "storages"
 ]
 
 MIDDLEWARE = [
@@ -59,6 +65,8 @@ CHANNEL_LAYERS = {
 
 WSGI_APPLICATION = 'comments_spa.wsgi.application'
 ASGI_APPLICATION = 'comments_spa.asgi.application'
+
+
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -142,14 +150,14 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# MEDIA_URL = "/media/"
+#MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 MAX_FILE_SIZE_KB = int(os.getenv("MAX_FILE_SIZE_KB", 100))
 MAX_IMAGE_WIDTH_KB = int(os.getenv("MAX_IMAGE_WIDTH_KB", 320))
@@ -183,3 +191,22 @@ CAPTCHA_LENGTH = int(os.getenv("CAPTCHA_LENGTH", 5))
 CACHE_TTL = int(os.getenv("CACHE_TTL", 300))
 REPLIES_PAGE_SIZE = int(os.getenv("REPLIES_PAGE_SIZE", 10))
 
+# ----- Storage config
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+STATIC_URL = f"static/"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "comments_spa.storage_backends.MediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    }
+}
