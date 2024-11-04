@@ -11,11 +11,8 @@ def unique_file_path(instance, filename):
     ext = filename.split(".")[-1]
 
     base_filename = slugify(".".join(filename.split(".")[:-1]))
-    unique_filename = f"{base_filename}_{uuid.uuid4().hex}.{ext}"
 
-    directory = "comments/files"
-
-    return os.path.join(directory, unique_filename)
+    return f"{base_filename}_{uuid.uuid4().hex}.{ext}"
 
 
 class Comment(models.Model):
@@ -32,8 +29,8 @@ class Comment(models.Model):
     )
     created_at = models.DateTimeField(default=timezone.now)
     content = models.TextField()
-    image = models.ImageField(upload_to=unique_file_path, blank=True, null=True)
-    text_file = models.FileField(upload_to=unique_file_path, blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to=unique_file_path)
+    text_file = models.FileField(blank=True, null=True, upload_to=unique_file_path)
 
     class Meta:
         ordering = ["-created_at"]
