@@ -7,10 +7,10 @@ import boto3
 from dotenv import load_dotenv
 import logging
 
-boto3.set_stream_logger('boto3.resources', logging.DEBUG)
+boto3.set_stream_logger("boto3.resources", logging.DEBUG)
 
 load_dotenv()
-INTERNAL_IPS = ['127.0.0.1', ]
+INTERNAL_IPS = ["127.0.0.1", ]
 
 ip = socket.gethostbyname(socket.gethostname())
 INTERNAL_IPS += [ip[:-1] + "1"]
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "user",
     "comments",
     "captcha",
+    "pubsub",
     "storages"
 ]
 
@@ -53,9 +54,9 @@ MIDDLEWARE = [
 ]
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
             "hosts": [
                 f"redis://{os.getenv('REDIS_HOST', 'redis')}:6379/2"
             ],
@@ -63,11 +64,8 @@ CHANNEL_LAYERS = {
     },
 }
 
-WSGI_APPLICATION = 'comments_spa.wsgi.application'
-ASGI_APPLICATION = 'comments_spa.asgi.application'
-
-
-
+WSGI_APPLICATION = "comments_spa.wsgi.application"
+ASGI_APPLICATION = "comments_spa.asgi.application"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080"
@@ -84,6 +82,8 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "<EMAIL>")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "<PASSWORD>")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+EMAIL_TOKEN_SALT = "342dflmas40irsad,a4sasDaknb"
 
 TEMPLATES = [
     {
@@ -150,14 +150,9 @@ USE_I18N = True
 USE_TZ = True
 
 
-# STATIC_URL = "static/"
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
-
-# MEDIA_URL = "/media/"
-#MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 MAX_FILE_SIZE_KB = int(os.getenv("MAX_FILE_SIZE_KB", 100))
 MAX_IMAGE_WIDTH_KB = int(os.getenv("MAX_IMAGE_WIDTH_KB", 320))
@@ -200,7 +195,12 @@ AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
 
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 
-STATIC_URL = f"static/"
+STATIC_URL = f"/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 STORAGES = {
     "default": {
@@ -210,3 +210,8 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     }
 }
+
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT", 5672)
+RABBITMQ_USER = os.getenv("RABBITMQ_USER")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")

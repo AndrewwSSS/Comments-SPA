@@ -20,10 +20,6 @@
     <main>
       <router-view></router-view>
     </main>
-
-    <footer>
-      <p>&copy; 2024 MyApp. All rights reserved.</p>
-    </footer>
   </div>
 </template>
 

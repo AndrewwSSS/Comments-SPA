@@ -1,12 +1,6 @@
 import json
 
-from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.core.cache import cache
-from asgiref.sync import sync_to_async
-
-from comments.models import Comment
-from comments.serializers import CommentSerializer
 
 
 class CommentConsumer(

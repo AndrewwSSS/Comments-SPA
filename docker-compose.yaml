@@ -1,4 +1,38 @@
   services:
+    rabbitmq:
+      image: rabbitmq:3-management
+      container_name: rabbitmq
+      ports:
+        - "5672:5672"
+        - "15672:15672" # UI
+      environment:
+        RABBITMQ_DEFAULT_USER: admin
+        RABBITMQ_DEFAULT_PASS: admin
+      healthcheck:
+        test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      volumes:
+        - rabbitmq_data:/var/lib/rabbitmq
+        - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+
+    notification-service:
+      build:
+        context: ./backend
+      volumes:
+        - ./backend:/app
+      depends_on:
+        db:
+          condition: service_started
+        rabbitmq:
+          condition: service_healthy
+      env_file:
+        - backend/.env
+      command: >
+        sh -c "python manage.py start_sub"
+      container_name: notification-service
+
     db:
       image:
         postgres:16.0-alpine3.17
@@ -19,7 +53,10 @@
       ports:
         - "8000:8000"
       depends_on:
-        - db
+        db:
+          condition: service_started
+        rabbitmq:
+          condition: service_healthy
       env_file:
         - backend/.env
       command: >
@@ -80,3 +117,4 @@
   volumes:
     db_data:
     static_volume:
+    rabbitmq_data:

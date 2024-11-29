@@ -15,13 +15,13 @@
     </div>
 
 
-
+    <CommentForm :parentMessageId="null" />
     <div v-if="comments.length === 0 && !isLoading" class="no-comments">
       <p>No comments yet. Be the first to comment!</p>
     </div>
 
     <div v-else class="comment-list">
-      <CommentForm :parentMessageId="null" />
+
       <CommentItem
           v-for="comment in sortedComments"
           :key="comment.id"
