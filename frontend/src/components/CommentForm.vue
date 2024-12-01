@@ -70,6 +70,7 @@
 <script>
 import {ref, nextTick} from 'vue';
 import { send_message } from "@/api";
+import DOMPurify from 'dompurify';
 
 export default {
   props: {
@@ -197,6 +198,10 @@ export default {
       }
 
       const formData = new FormData();
+      if (!DOMPurify.sanitize(content.value)) {
+        error.value = "Invalid content"
+        return;
+      }
       formData.append('content', content.value);
 
       if (image.value) {
